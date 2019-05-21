@@ -1,15 +1,6 @@
-def _get_upstream_nodes(node,netlist):
-    upstream = []
-    for edge in netlist.edges:
-        if edge.dst == node:
-            upstream.append(edge.src)
-    return upstream
+__author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
+__license__ = 'GPL3'
 
-def _get_upstream_node(part,node,netlist):
-    for upstream in _get_upstream_nodes(node,netlist):
-        gate = upstream.gate
-        if gate.promoter == part:
-            return upstream
 
 class Gate:
 
