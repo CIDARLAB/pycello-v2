@@ -1,0 +1,25 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "f68a4627351e208e6809e1b49b0eba18a1f8e30b427120476d01263ed07bd938"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.7"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "pycello2": {
+            "editable": true,
+            "path": "."
+        }
+    },
+    "develop": {}
+}
