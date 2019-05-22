@@ -199,7 +199,7 @@ class Netlist:
         for placement in netlist['placements']:
             p = Placement()
             self.placements.append(p)
-            for group in placement['groups']:
+            for group in placement:
                 g = PlacementGroup()
                 p.groups.append(g)
                 g.name = group['name']
