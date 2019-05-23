@@ -7,8 +7,6 @@ import dnaplotlib as dpl
 
 import pycello2.netlist
 import pycello2.ucf
-# from ..netlist import Netlist, get_unit
-# from ucf import UCF, get_upstream_node
 
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
@@ -27,6 +25,8 @@ def main():
                         required=True, help="Logic table.", metavar="FILE")
     parser.add_argument("--netlist", "-n",
                         required=True, help="Netlist.", metavar="FILE")
+    parser.add_argument("--output", "-o",
+                        required=False, help="Output file.", metavar="FILE")
     args = parser.parse_args()
 
     activity = []
@@ -200,9 +200,6 @@ def main():
             last_x = x[-1][-1]
             last_y = y[-1][-1]
 
-        # ymin = np.min([item for l in y for item in l][2:])
-        # y[0][0] = ymin
-        # y[0][1] = ymin
         for i, component in enumerate(components):
             color = 'blue' if get_node_logic(component.node)[row] == 'false' else 'red'
             color = 'black'
@@ -213,22 +210,14 @@ def main():
 
     design = []
 
-    # Function to generate a ligher colour
-    def lighten_color(col, fac):
-        r = col[0] + (fac*(1.0-col[0]))
-        g = col[1] + (fac*(1.0-col[1]))
-        b = col[2] + (fac*(1.0-col[2]))
-        return (r, g, b)
-
     it = iter(['C' + str(i) for i in range(10)])
 
-    # A design is merely a list of parts and their properties
-    start = 0
     for i, component in enumerate(components):
         for j, part_instance in enumerate(component.parts):
             if part_instance.part.type == 'cds':
                 part_instance.color = next(it)
 
+    start = 0
     for i, component in enumerate(components):
         for j, part_instance in enumerate(component.parts):
             extent = len(part_instance.part.sequence)
@@ -249,7 +238,7 @@ def main():
                         'fwd': True,
                         'opts': {'color': part_instance.color,
                                  'label': part_instance.part.name,
-                                 'label_y_offset':-5},
+                                 'label_y_offset': -5},
                         'start': start,
                         'end': start + extent}
             if part_instance.part.type == 'terminator':
@@ -288,7 +277,11 @@ def main():
     ax_dna.set_yticks([])
     ax_dna.axis('off')
 
-    plt.savefig('rnaseq.png')
+    if (args.output):
+        out_file = args.output
+    else:
+        out_file = 'out'
+        plt.savefig(out_file + '.png')
 
 
 if __name__ == "__main__":
