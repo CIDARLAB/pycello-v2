@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import json
@@ -107,7 +108,16 @@ def main():
             ax.append(fig.add_subplot(gs[row], sharex=ax[0], sharey=ax[0]))
 
         ax[row].set_xticks([])
-        for k in range(8):
+
+        profile = []
+        temp = []
+        for component in components:
+            for part in component.parts:
+                temp.append(1)
+                profile.append(100)
+        while (np.max(np.abs(np.array(profile) - np.array(temp))) > 1e-3):
+            temp = profile.copy()
+            profile = []
             for i, component in enumerate(components):
                 for j, part_instance in enumerate(component.parts):
                     # offset to which we add the flux (readthrough, upstream promoter flux)
@@ -127,8 +137,8 @@ def main():
                         if upstream.type == 'PRIMARY_INPUT':
                             delta_flux = float(get_node_activity(upstream)[row])
                         else:
-                            input_flux = pycello2.netlist.get_component(upstream,placement).parts[-2].flux
-                            delta_flux = evaluate_equation(upstream,{'x':input_flux})
+                            input_flux = pycello2.netlist.get_component(upstream, placement).parts[-2].flux
+                            delta_flux = evaluate_equation(upstream, {'x': input_flux})
                         part_instance.flux = get_ribozyme(component).efficiency * delta_flux + offset
                     if part_instance.part.type == 'ribozyme':
                         part_instance.flux = offset / get_ribozyme(component).efficiency
@@ -137,12 +147,14 @@ def main():
                     if part_instance.part.type == 'terminator':
                         part_instance.flux = offset/part_instance.part.strength
 
+                    profile.append(part_instance.flux)
+
         ax[row].set_yscale('log')
         # ax[row].set_yscale('log')
         x = []
         y = []
         last_x = 0
-        last_y = 1e-6
+        last_y = 1e-8
         for i, component in enumerate(components):
             x.append([])
             y.append([])
@@ -212,8 +224,10 @@ def main():
 
     it = iter(['C' + str(i) for i in range(10)])
 
+    seq_len = 0
     for i, component in enumerate(components):
         for j, part_instance in enumerate(component.parts):
+            seq_len += len(part_instance.part.sequence)
             if part_instance.part.type == 'cds':
                 part_instance.color = next(it)
 
@@ -232,13 +246,15 @@ def main():
                         'fwd': True,
                         'start': start,
                         'end': start + extent,
-                        'opts': {'color': color}}
+                        'opts': {'color': color, 'x_extent': 5 + seq_len/25}}
             if part_instance.part.type == 'cds':
                 part = {'type': 'CDS',
                         'fwd': True,
                         'opts': {'color': part_instance.color,
                                  'label': part_instance.part.name,
-                                 'label_y_offset': -5},
+                                 'label_y_offset': -5,
+                                 'arrowhead_height': 0,
+                                 'arrowhead_length': 5 + seq_len/100},
                         'start': start,
                         'end': start + extent}
             if part_instance.part.type == 'terminator':
@@ -246,7 +262,7 @@ def main():
                         'fwd': True,
                         'start': start,
                         'end': start + extent,
-                        'opts': {'color': 'black'}}
+                        'opts': {'color': 'black', 'x_extent': 2 + seq_len/100}}
             if part_instance.part.type == 'ribozyme':
                 part = {'type': 'Ribozyme',
                         'fwd': True,
