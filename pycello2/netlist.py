@@ -2,13 +2,15 @@ __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
-def get_component(node, placement):
-    for component in placement.components:
+def get_component(node, group):
+    """Get the component in a placement group corresponding to a given node."""
+    for component in group.components:
         if component.node == node:
             return component
 
 
 def get_upstream_nodes(node, netlist):
+    """Get the nodes immediately upstream of a given node."""
     upstream = []
     for edge in netlist.edges:
         if edge.dst == node:
@@ -17,10 +19,19 @@ def get_upstream_nodes(node, netlist):
 
 
 def get_upstream_node(part, node, netlist):
+    """Get the node immediately upstream of a given node, with gate having
+    promoter 'part'."""
     for upstream in get_upstream_nodes(node, netlist):
         gate = upstream.gate
         if gate.promoter == part:
             return upstream
+
+
+def get_cds(component):
+    """Get the coding sequence in a given component."""
+    for part_instance in component.parts:
+        if part_instance.part.type == 'cds':
+            return part_instance
 
 
 class Node:
