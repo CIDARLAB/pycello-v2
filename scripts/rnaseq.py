@@ -10,7 +10,6 @@ import pycello2.netlist
 import pycello2.dnaplotlib
 import pycello2.ucf
 
-
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
@@ -60,16 +59,6 @@ def main():
             if row[0] == node.name:
                 return row[1:]
 
-    def get_ribozyme(component):
-        for part_instance in component.parts:
-            if part_instance.part.type == 'ribozyme':
-                return part_instance.part
-
-    def get_cds(component):
-        for part_instance in component.parts:
-            if part_instance.part.type == 'cds':
-                return part_instance
-
     def evaluate_equation(node, variables):
         param_str = ""
         for param in node.gate.parameters.keys():
@@ -110,8 +99,6 @@ def main():
         else:
             ax.append(fig.add_subplot(gs[row], sharex=ax[0], sharey=ax[0]))
 
-        ax[row].set_xticks([])
-
         profile = []
         temp = []
         for component in components:
@@ -127,11 +114,7 @@ def main():
                     if j == 0 and i > 0:
                         offset = components[i-1].parts[-1].flux
                     elif j > 0:
-                        # print(part_instance.part.name)
-                        # print(component.parts[j-1].part.name)
                         offset = component.parts[j-1].flux
-                        # print(offset)
-                        # print()
                     else:
                         offset = 0.0
 
@@ -142,7 +125,7 @@ def main():
                         else:
                             input_flux = pycello2.netlist.get_component(upstream, placement).parts[-2].flux
                             delta_flux = evaluate_equation(upstream, {'x': input_flux})
-                        part_instance.flux = get_ribozyme(component).efficiency * delta_flux + offset
+                        part_instance.flux = pycello2.netlist.get_ribozyme(component).efficiency * delta_flux + offset
                     if part_instance.part.type == 'ribozyme':
                         part_instance.flux = offset / get_ribozyme(component).efficiency
                     if part_instance.part.type in ('cds','rbs'):
@@ -152,6 +135,7 @@ def main():
 
                     profile.append(part_instance.flux)
 
+        ax[row].set_xticks([])
         ax[row].set_yscale('log')
         # ax[row].set_yscale('log')
         x = []

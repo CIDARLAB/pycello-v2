@@ -2,41 +2,6 @@ __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
-    
-
-def get_component(node, placement):
-    """Get the component in a placement group corresponding to a given node."""
-    for group in placement.groups:
-        for component in group.components:
-            if component.node == node:
-                return component
-
-
-def get_upstream_nodes(node, netlist):
-    """Get the nodes immediately upstream of a given node."""
-    upstream = []
-    for edge in netlist.edges:
-        if edge.dst == node:
-            upstream.append(edge.src)
-    return upstream
-
-
-def get_upstream_node(part, node, netlist):
-    """Get the node immediately upstream of a given node, with gate having
-    promoter 'part'."""
-    for upstream in get_upstream_nodes(node, netlist):
-        gate = upstream.gate
-        if gate.promoter == part:
-            return upstream
-
-
-def get_cds(component):
-    """Get the coding sequence in a given component."""
-    for part_instance in component.parts:
-        if part_instance.part.type == 'cds':
-            return part_instance
-
-
 class Node:
 
     def __init__(self, node, ucf):
@@ -132,7 +97,6 @@ class PlacementGroup:
         for component in self.components:
             sequence += component.sequence
         return sequence
-
 
 
 class Component:
@@ -269,3 +233,43 @@ class Netlist:
     @placements.setter
     def placements(self, placements):
         self.__placements = placements
+
+
+def get_upstream_node(part, node: Node, netlist: Netlist):
+    """Get the node immediately upstream of a given node, with gate having
+    promoter 'part'."""
+    for upstream in get_upstream_nodes(node, netlist):
+        gate = upstream.gate
+        if gate.promoter == part:
+            return upstream
+
+
+def get_cds(component: Component):
+    """Get the coding sequence in a given component."""
+    for part_instance in component.parts:
+        if part_instance.part.type == 'cds':
+            return part_instance
+
+
+def get_ribozyme(component: Component):
+    """Get the ribozyme sequence in a given component."""
+    for part_instance in component.parts:
+        if part_instance.part.type == 'ribozyme':
+            return part_instance.part
+
+
+def get_component(node: Node, placement: Placement):
+    """Get the component in a placement group corresponding to a given node."""
+    for group in placement.groups:
+        for component in group.components:
+            if component.node == node:
+                return component
+
+
+def get_upstream_nodes(node: Node, netlist: Netlist):
+    """Get the nodes immediately upstream of a given node."""
+    upstream = []
+    for edge in netlist.edges:
+        if edge.dst == node:
+            upstream.append(edge.src)
+    return upstream
