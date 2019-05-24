@@ -29,14 +29,22 @@ def main():
 
     designs = pycello2.dnaplotlib.get_designs(netlist)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(5, len(designs)*1))
 
     h_frac = 1./len(designs)
+    w_pad = 0.05
     for i, design in enumerate(designs):
-        w_frac = 1./len(design)
+        width = (1. - w_pad*(len(design) - 1))
+        left = 0.0
+        seq_len = 0
+        for group in design:
+            seq_len += group[-1]['end']
         for j, group in enumerate(design):
+            w_frac = group[-1]['end'] / seq_len * width
             # Set up the axes for the genetic constructs
-            ax = fig.add_axes([j*w_frac, i*h_frac, w_frac, h_frac])
+            rect = [left, i*h_frac, w_frac, h_frac]
+            left += w_frac + w_pad
+            ax = fig.add_axes(rect)
 
             # Create the DNAplotlib renderer
             dr = dpl.DNARenderer()

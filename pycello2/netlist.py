@@ -2,11 +2,14 @@ __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
-def get_component(node, group):
+    
+
+def get_component(node, placement):
     """Get the component in a placement group corresponding to a given node."""
-    for component in group.components:
-        if component.node == node:
-            return component
+    for group in placement.groups:
+        for component in group.components:
+            if component.node == node:
+                return component
 
 
 def get_upstream_nodes(node, netlist):
@@ -122,6 +125,14 @@ class PlacementGroup:
     @components.setter
     def components(self, components):
         self.__components = components
+
+    @property
+    def sequence(self):
+        sequence = ""
+        for component in self.components:
+            sequence += component.sequence
+        return sequence
+
 
 
 class Component:

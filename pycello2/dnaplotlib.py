@@ -31,7 +31,7 @@ def get_designs(netlist):
                             color = next(it)
                             color_map[part_instance.part.name] = color
                             part_instance.color = color
-                start = 0
+            start = 0
             for i, component in enumerate(group.components):
                 for j, part_instance in enumerate(component.parts):
                     extent = len(part_instance.part.sequence)
@@ -39,14 +39,16 @@ def get_designs(netlist):
                         upstream = pycello2_netlist.get_upstream_node(part_instance.part, component.node, netlist)
                         color = 'black'
                         if (upstream):
-                            upstream_component = pycello2_netlist.get_component(upstream, group)
-                            cds = pycello2_netlist.get_cds(upstream_component)
-                            color = cds.color
+                            upstream_component = pycello2_netlist.get_component(upstream, placement)
+                            if (upstream_component):
+                                cds = pycello2_netlist.get_cds(upstream_component)
+                                color = cds.color
                         part = {'type': 'Promoter',
                                 'fwd': True,
                                 'start': start,
                                 'end': start + extent,
-                                'opts': {'color': color, 'x_extent': 5 + seq_len/25}}
+                                'opts': {'color': color,
+                                         'x_extent': 5 + seq_len/25}}
                     if part_instance.part.type == 'cds':
                         part = {'type': 'CDS',
                                 'fwd': True,
@@ -74,7 +76,7 @@ def get_designs(netlist):
                                 'fwd': True,
                                 'start': start,
                                 'end': start + extent,
-                                'opts': {'color': 'black'}}
+                                'opts': {'color': 'black', 'x_extent': 40}}
                     start += extent + 1
                     dpl_group.append(part)
     return dpl_designs

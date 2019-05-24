@@ -7,6 +7,7 @@ import sympy
 import dnaplotlib as dpl
 
 import pycello2.netlist
+import pycello2.dnaplotlib
 import pycello2.ucf
 
 
@@ -44,6 +45,8 @@ def main():
             logic.append(row)
     with open(args.netlist, 'r') as netlist_file:
         netlist = pycello2.netlist.Netlist(json.load(netlist_file), ucf)
+
+    designs = pycello2.dnaplotlib.get_designs(netlist)
 
     placement = netlist.placements[0].groups[0]
 
@@ -220,64 +223,6 @@ def main():
     plt.xlim(x[0][0], x[-1][-1])
     plt.subplots_adjust(hspace=0.0)
 
-    design = []
-
-    it = iter(['C' + str(i) for i in range(10)])
-
-    seq_len = 0
-    for i, component in enumerate(components):
-        for j, part_instance in enumerate(component.parts):
-            seq_len += len(part_instance.part.sequence)
-            if part_instance.part.type == 'cds':
-                part_instance.color = next(it)
-
-    start = 0
-    for i, component in enumerate(components):
-        for j, part_instance in enumerate(component.parts):
-            extent = len(part_instance.part.sequence)
-            if part_instance.part.type == 'promoter':
-                upstream = pycello2.netlist.get_upstream_node(part_instance.part, component.node, netlist)
-                color = 'black'
-                if (upstream):
-                    upstream_component = pycello2.netlist.get_component(upstream, placement)
-                    cds = get_cds(upstream_component)
-                    color = cds.color
-                part = {'type': 'Promoter',
-                        'fwd': True,
-                        'start': start,
-                        'end': start + extent,
-                        'opts': {'color': color, 'x_extent': 5 + seq_len/25}}
-            if part_instance.part.type == 'cds':
-                part = {'type': 'CDS',
-                        'fwd': True,
-                        'opts': {'color': part_instance.color,
-                                 'label': part_instance.part.name,
-                                 'label_y_offset': -5,
-                                 'arrowhead_height': 0,
-                                 'arrowhead_length': 5 + seq_len/100},
-                        'start': start,
-                        'end': start + extent}
-            if part_instance.part.type == 'terminator':
-                part = {'type': 'Terminator',
-                        'fwd': True,
-                        'start': start,
-                        'end': start + extent,
-                        'opts': {'color': 'black', 'x_extent': 2 + seq_len/100}}
-            if part_instance.part.type == 'ribozyme':
-                part = {'type': 'Ribozyme',
-                        'fwd': True,
-                        'start': start,
-                        'end': start + extent,
-                        'color': 'black'}
-            if part_instance.part.type == 'rbs':
-                part = {'type': 'RBS',
-                        'fwd': True,
-                        'start': start,
-                        'end': start + extent,
-                        'opts': {'color': 'black'}}
-            start += extent + 1
-            design.append(part)
-
     # Set up the axes for the genetic constructs
     ax_dna = fig.add_subplot(gs[num_plots])
 
@@ -285,7 +230,7 @@ def main():
     dr = dpl.DNARenderer()
 
     # Redender the DNA to axis
-    start, end = dr.renderDNA(ax_dna, design, dr.trace_part_renderers())
+    start, end = dr.renderDNA(ax_dna, designs[0][0], dr.trace_part_renderers())
     ax_dna.set_xlim([start, end])
     ax_dna.set_ylim([-5, 10])
     ax_dna.set_aspect('auto')
