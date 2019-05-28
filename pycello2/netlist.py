@@ -132,7 +132,7 @@ class Component:
     def sequence(self):
         sequence = ""
         for part in self.parts:
-            sequence += part.sequence
+            sequence += part.part.sequence
         return sequence
 
 

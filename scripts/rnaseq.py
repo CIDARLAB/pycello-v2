@@ -14,6 +14,42 @@ __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
+def evaluate_equation(node, variables):
+    param_str = ""
+    for param in node.gate.parameters.keys():
+        param_str += param + " "
+    param_syms = sympy.symbols(param_str)
+    if type(param_syms) is not tuple:
+        param_syms = (param_syms,)
+    var_str = ""
+    for var in variables.keys():
+        var_str += var
+    var_syms = sympy.symbols(var_str)
+    if type(var_syms) is not tuple:
+        var_syms = (var_syms,)
+    expr = sympy.simplify(node.gate.equation)
+
+    subs = []
+    for param in param_syms:
+        subs += ((param, node.gate.parameters[param.name]),)
+    for var in var_syms:
+        subs += ((var, variables[var.name]),)
+
+    return expr.subs(subs)
+
+
+def get_node_logic(node, logic):
+    for row in logic:
+        if row[0] == node.name:
+            return row[1:]
+
+
+def get_node_activity(node, activity):
+    for row in activity:
+        if row[0] == node.name:
+            return row[1:]
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Plot RNAseq profile from predicted RPU."
@@ -45,188 +81,159 @@ def main():
     with open(args.netlist, 'r') as netlist_file:
         netlist = pycello2.netlist.Netlist(json.load(netlist_file), ucf)
 
+    # dnaplotlib specifications
     designs = pycello2.dnaplotlib.get_designs(netlist)
 
-    placement = netlist.placements[0].groups[0]
+    placement = netlist.placements[0]
 
-    def get_node_logic(node):
-        for row in logic:
-            if row[0] == node.name:
-                return row[1:]
+    num_plots = len(logic[0])
 
-    def get_node_activity(node):
-        for row in activity:
-            if row[0] == node.name:
-                return row[1:]
-
-    def evaluate_equation(node, variables):
-        param_str = ""
-        for param in node.gate.parameters.keys():
-            param_str += param + " "
-        param_syms = sympy.symbols(param_str)
-        if type(param_syms) is not tuple:
-            param_syms = (param_syms,)
-        var_str = ""
-        for var in variables.keys():
-            var_str += var
-        var_syms = sympy.symbols(var_str)
-        if type(var_syms) is not tuple:
-            var_syms = (var_syms,)
-        expr = sympy.simplify(node.gate.equation)
-
-        subs = []
-        for param in param_syms:
-            subs += ((param, node.gate.parameters[param.name]),)
-        for var in var_syms:
-            subs += ((var, variables[var.name]),)
-
-        return expr.subs(subs)
-
-    num_plots = len(logic[0]) - 1
+    widths = [len(group.sequence) for group in placement.groups]
 
     fig = plt.figure()
-    gs = fig.add_gridspec(num_plots + 1, 1)
+    gs = fig.add_gridspec(num_plots, len(placement.groups), width_ratios=widths)
 
-    components = []
-    for component in placement.components:
-        if component.node.type != 'PRIMARY_INPUT':
-            components.append(component)
-    ax = []
+    axes = []
 
-    for row in range(num_plots):
-        if row == 0:
-            ax.append(fig.add_subplot(gs[row]))
-        else:
-            ax.append(fig.add_subplot(gs[row], sharex=ax[0], sharey=ax[0]))
+    for row in range(num_plots - 1):
+        axes_row = []
+        axes.append(axes_row)
+        for col, group in enumerate(placement.groups):
+            sharex = axes[row - 1][col] if row > 0 else None
+            sharey = axes[0][0] if (row != 0 or col != 0) else None
+            ax = fig.add_subplot(gs[row, col], sharex=sharex, sharey=sharey)
+            axes_row.append(ax)
 
-        profile = []
-        temp = []
-        for component in components:
-            for part in component.parts:
-                temp.append(1)
-                profile.append(100)
-        while (np.max(np.abs(np.array(profile) - np.array(temp))) > 1e-3):
-            temp = profile.copy()
             profile = []
-            for i, component in enumerate(components):
-                for j, part_instance in enumerate(component.parts):
-                    # offset to which we add the flux (readthrough, upstream promoter flux)
-                    if j == 0 and i > 0:
-                        offset = components[i-1].parts[-1].flux
-                    elif j > 0:
-                        offset = component.parts[j-1].flux
-                    else:
-                        offset = 0.0
-
-                    if part_instance.part.type == 'promoter':
-                        upstream = pycello2.netlist.get_upstream_node(part_instance.part,component.node,netlist)
-                        if upstream.type == 'PRIMARY_INPUT':
-                            delta_flux = float(get_node_activity(upstream)[row])
+            temp = []
+            for component in group.components:
+                for part in component.parts:
+                    temp.append(1.0)
+                    profile.append(100.0)
+            while (np.max(np.abs(np.array(profile) - np.array(temp))) > 1e-3):
+                temp = profile.copy()
+                profile = []
+                for i, component in enumerate(group.components):
+                    for j, part_instance in enumerate(component.parts):
+                        # offset to which we add the flux (readthrough, upstream promoter flux)
+                        if j == 0 and i > 0:
+                            offset = group.components[i-1].parts[-1].flux
+                        elif j > 0:
+                            offset = component.parts[j-1].flux
                         else:
-                            input_flux = pycello2.netlist.get_component(upstream, placement).parts[-2].flux
-                            delta_flux = evaluate_equation(upstream, {'x': input_flux})
-                        part_instance.flux = pycello2.netlist.get_ribozyme(component).efficiency * delta_flux + offset
-                    if part_instance.part.type == 'ribozyme':
-                        part_instance.flux = offset / get_ribozyme(component).efficiency
-                    if part_instance.part.type in ('cds','rbs'):
-                        part_instance.flux = offset
+                            offset = 0.0
+
+                        if part_instance.part.type == 'promoter':
+                            upstream = pycello2.netlist.get_upstream_node(part_instance.part, component.node, netlist)
+                            if upstream.type == 'PRIMARY_INPUT':
+                                delta_flux = float(get_node_activity(upstream,activity)[row])
+                            else:
+                                input_flux = pycello2.netlist.get_component(upstream, placement).parts[-2].flux
+                                delta_flux = evaluate_equation(upstream, {'x': input_flux})
+                            part_instance.flux = pycello2.netlist.get_ribozyme(component).efficiency * delta_flux + offset
+                        if part_instance.part.type == 'ribozyme':
+                            part_instance.flux = offset / pycello2.netlist.get_ribozyme(component).efficiency
+                        if part_instance.part.type in ('cds', 'rbs'):
+                            part_instance.flux = offset
+                        if part_instance.part.type == 'terminator':
+                            part_instance.flux = offset / part_instance.part.strength
+
+                        profile.append(part_instance.flux)
+
+            ax.set_xticks([])
+            ax.set_yscale('log')
+            if col > 0:
+                plt.setp(ax.get_yticklabels(), visible=False)
+                # ax.xaxis.set_tick_params(which=u'both',length=0)
+                ax.tick_params(axis=u'both', which=u'both',length=0)
+
+            x = []
+            y = []
+            last_x = 0
+            last_y = 1e-8
+
+            for i, component in enumerate(group.components):
+                x.append([])
+                y.append([])
+
+                for j, part_instance in enumerate(component.parts):
+                    if j == 0:
+                        initial_x = last_x
+                        initial_y = last_y
+                    else:
+                        initial_x = x[-1][-1]
+                        initial_y = y[-1][-1]
+
                     if part_instance.part.type == 'terminator':
-                        part_instance.flux = offset/part_instance.part.strength
+                        x[-1].append(initial_x)
+                        x[-1].append(initial_x + int(0.5*len(part_instance.part. sequence)))
+                        x[-1].append(initial_x + int(0.5*len(part_instance.part. sequence)))
+                        x[-1].append(initial_x + len(part_instance.part.sequence))
+                        y[-1].append(initial_y)
+                        y[-1].append(initial_y)
+                        y[-1].append(part_instance.flux)
+                        y[-1].append(part_instance.flux)
+                    elif part_instance.part.type == 'promoter':
+                        x[-1].append(initial_x)
+                        x[-1].append(initial_x + len(part_instance.part.sequence))
+                        x[-1].append(initial_x + len(part_instance.part.sequence))
+                        y[-1].append(initial_y)
+                        y[-1].append(initial_y)
+                        y[-1].append(part_instance.flux)
+                    elif part_instance.part.type == 'ribozyme':
+                        x[-1].append(initial_x)
+                        x[-1].append(initial_x + 7)
+                        x[-1].append(initial_x + 7)
+                        x[-1].append(initial_x + len(part_instance.part.sequence))
+                        y[-1].append(initial_y)
+                        y[-1].append(initial_y)
+                        y[-1].append(part_instance.flux)
+                        y[-1].append(part_instance.flux)
+                    else:
+                        x[-1].append(initial_x)
+                        x[-1].append(initial_x + len(part_instance.part.sequence))
+                        y[-1].append(part_instance.flux)
+                        y[-1].append(part_instance.flux)
 
-                    profile.append(part_instance.flux)
-
-        ax[row].set_xticks([])
-        ax[row].set_yscale('log')
-        # ax[row].set_yscale('log')
-        x = []
-        y = []
-        last_x = 0
-        last_y = 1e-8
-        for i, component in enumerate(components):
-            x.append([])
-            y.append([])
-            # cello_gate_activity = float(get_node_activity(component.node)[row])
-
-            for j, part_instance in enumerate(component.parts):
-                if j == 0:
-                    initial_x = last_x
-                    initial_y = last_y
+                if i == 0:
+                    pre_x = []
+                    pre_y = []
                 else:
-                    initial_x = x[-1][-1]
-                    initial_y = y[-1][-1]
+                    pre_x = [last_x, ]
+                    pre_y = [last_y, ]
 
-                if part_instance.part.type == 'terminator':
-                    x[-1].append(initial_x)
-                    x[-1].append(initial_x + int(0.5*len(part_instance.part.sequence)))
-                    x[-1].append(initial_x + int(0.5*len(part_instance.part.sequence)))
-                    x[-1].append(initial_x + len(part_instance.part.sequence))
-                    y[-1].append(initial_y)
-                    y[-1].append(initial_y)
-                    y[-1].append(part_instance.flux)
-                    y[-1].append(part_instance.flux)
-                elif part_instance.part.type == 'promoter':
-                    x[-1].append(initial_x)
-                    x[-1].append(initial_x + len(part_instance.part.sequence))
-                    x[-1].append(initial_x + len(part_instance.part.sequence))
-                    y[-1].append(initial_y)
-                    y[-1].append(initial_y)
-                    y[-1].append(part_instance.flux)
-                elif part_instance.part.type == 'ribozyme':
-                    x[-1].append(initial_x)
-                    x[-1].append(initial_x + 7)
-                    x[-1].append(initial_x + 7)
-                    x[-1].append(initial_x + len(part_instance.part.sequence))
-                    y[-1].append(initial_y)
-                    y[-1].append(initial_y)
-                    y[-1].append(part_instance.flux)
-                    y[-1].append(part_instance.flux)
-                else:
-                    x[-1].append(initial_x)
-                    x[-1].append(initial_x + len(part_instance.part.sequence))
-                    y[-1].append(part_instance.flux)
-                    y[-1].append(part_instance.flux)
+                x[-1] = pre_x + x[-1]
+                y[-1] = pre_y + y[-1]
 
-            if i == 0:
-                pre_x = []
-                pre_y = []
-            else:
-                pre_x = [last_x, ]
-                pre_y = [last_y, ]
+                last_x = x[-1][-1]
+                last_y = y[-1][-1]
 
-            x[-1] = pre_x + x[-1]
-            y[-1] = pre_y + y[-1]
+            for i, component in enumerate(group.components):
+                color = 'blue' if get_node_logic(component.node,logic)[row] == 'false' else 'red'
+                color = 'black'
+                ax.plot(x[i], y[i], '-', color=color)
 
-            last_x = x[-1][-1]
-            last_y = y[-1][-1]
+            ax.set_xlim(x[0][0], x[-1][-1])
 
-        for i, component in enumerate(components):
-            color = 'blue' if get_node_logic(component.node)[row] == 'false' else 'red'
-            color = 'black'
-            ax[row].plot(x[i], y[i], '-', color=color)
+    for i, group in enumerate(placement.groups):
+        ax_dna = fig.add_subplot(gs[-1, i])
 
-    plt.xlim(x[0][0], x[-1][-1])
-    plt.subplots_adjust(hspace=0.0)
-
-    # Set up the axes for the genetic constructs
-    ax_dna = fig.add_subplot(gs[num_plots])
-
-    # Create the DNAplotlib renderer
-    dr = dpl.DNARenderer()
-
-    # Redender the DNA to axis
-    start, end = dr.renderDNA(ax_dna, designs[0][0], dr.trace_part_renderers())
-    ax_dna.set_xlim([start, end])
-    ax_dna.set_ylim([-5, 10])
-    ax_dna.set_aspect('auto')
-    ax_dna.set_xticks([])
-    ax_dna.set_yticks([])
-    ax_dna.axis('off')
+        dr = dpl.DNARenderer()
+        start, end = dr.renderDNA(ax_dna, designs[0][i], dr.trace_part_renderers())
+        ax_dna.set_xlim([start, end])
+        ax_dna.set_ylim([-5, 10])
+        ax_dna.set_aspect('auto')
+        ax_dna.set_xticks([])
+        ax_dna.set_yticks([])
+        ax_dna.axis('off')
 
     if (args.output):
         out_file = args.output
     else:
         out_file = 'out'
-        plt.savefig(out_file + '.png')
+    plt.tight_layout()
+    plt.subplots_adjust(hspace=0.0, wspace=0.1)
+    plt.savefig(out_file + '.png', bbox_to_inches='tight')
 
 
 if __name__ == "__main__":
