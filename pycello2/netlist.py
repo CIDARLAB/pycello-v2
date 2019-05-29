@@ -258,12 +258,14 @@ def get_ribozyme(component: Component):
             return part_instance.part
 
 
-def get_component(node: Node, placement: Placement):
-    """Get the component in a placement group corresponding to a given node."""
+def get_components(node: Node, placement: Placement):
+    """Get the components in a placement that correspond to a given netlist node."""
+    components = []
     for group in placement.groups:
         for component in group.components:
             if component.node == node:
-                return component
+                components.append(component)
+    return components
 
 
 def get_upstream_nodes(node: Node, netlist: Netlist):

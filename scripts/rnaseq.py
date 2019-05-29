@@ -90,7 +90,7 @@ def main():
 
     widths = [len(group.sequence) for group in placement.groups]
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(np.sum(widths)/650, num_plots))
     gs = fig.add_gridspec(num_plots, len(placement.groups), width_ratios=widths)
 
     axes = []
@@ -124,12 +124,15 @@ def main():
                             offset = 0.0
 
                         if part_instance.part.type == 'promoter':
-                            upstream = pycello2.netlist.get_upstream_node(part_instance.part, component.node, netlist)
-                            if upstream.type == 'PRIMARY_INPUT':
-                                delta_flux = float(get_node_activity(upstream,activity)[row])
+                            upstream_node = pycello2.netlist.get_upstream_node(part_instance.part, component.node, netlist)
+                            if upstream_node.type == 'PRIMARY_INPUT':
+                                delta_flux = float(get_node_activity(upstream_node, activity)[row])
                             else:
-                                input_flux = pycello2.netlist.get_component(upstream, placement).parts[-2].flux
-                                delta_flux = evaluate_equation(upstream, {'x': input_flux})
+                                upstream_components = pycello2.netlist.get_components(upstream_node, placement)
+                                input_flux = 0.0
+                                for upstream_component in upstream_components:
+                                    input_flux += upstream_component.parts[-2].flux
+                                delta_flux = evaluate_equation(upstream_node, {'x': input_flux})
                             part_instance.flux = pycello2.netlist.get_ribozyme(component).efficiency * delta_flux + offset
                         if part_instance.part.type == 'ribozyme':
                             part_instance.flux = offset / pycello2.netlist.get_ribozyme(component).efficiency
@@ -144,13 +147,12 @@ def main():
             ax.set_yscale('log')
             if col > 0:
                 plt.setp(ax.get_yticklabels(), visible=False)
-                # ax.xaxis.set_tick_params(which=u'both',length=0)
-                ax.tick_params(axis=u'both', which=u'both',length=0)
+                ax.tick_params(axis=u'both', which=u'both', length=0)
 
             x = []
             y = []
             last_x = 0
-            last_y = 1e-8
+            last_y = 1e-6
 
             for i, component in enumerate(group.components):
                 x.append([])
@@ -217,9 +219,18 @@ def main():
 
     for i, group in enumerate(placement.groups):
         ax_dna = fig.add_subplot(gs[-1, i])
+        inv = ax_dna.transData.inverted()
+        design = designs[0][i]
+        for part in design:
+            if part['type'] == 'Promoter':
+                part['opts']['x_extent'] = np.sum(widths)/30
+            if part['type'] == 'Terminator':
+                part['opts']['x_extent'] = np.sum(widths)/100
+            if part['type'] == 'CDS':
+                part['opts']['arrowhead_length'] = np.sum(widths)/100
 
         dr = dpl.DNARenderer()
-        start, end = dr.renderDNA(ax_dna, designs[0][i], dr.trace_part_renderers())
+        start, end = dr.renderDNA(ax_dna, design, dr.trace_part_renderers())
         ax_dna.set_xlim([start, end])
         ax_dna.set_ylim([-5, 10])
         ax_dna.set_aspect('auto')

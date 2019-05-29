@@ -39,16 +39,16 @@ def get_designs(netlist):
                         upstream = pycello2_netlist.get_upstream_node(part_instance.part, component.node, netlist)
                         color = 'black'
                         if (upstream):
-                            upstream_component = pycello2_netlist.get_component(upstream, placement)
-                            if (upstream_component):
-                                cds = pycello2_netlist.get_cds(upstream_component)
+                            upstream_components = pycello2_netlist.get_components(upstream, placement)
+                            if (len(upstream_components)):
+                                cds = pycello2_netlist.get_cds(upstream_components[0])
                                 color = cds.color
                         part = {'type': 'Promoter',
                                 'fwd': True,
                                 'start': start,
                                 'end': start + extent,
                                 'opts': {'color': color,
-                                         'x_extent': 5 + seq_len/25}}
+                                         'x_extent': 100}}
                     if part_instance.part.type == 'cds':
                         part = {'type': 'CDS',
                                 'fwd': True,
