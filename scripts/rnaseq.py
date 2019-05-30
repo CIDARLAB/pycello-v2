@@ -1,41 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FixedLocator, NullLocator
 import argparse
 import json
 import csv
-import sympy
 import dnaplotlib as dpl
+import logging
 
 import pycello2.netlist
 import pycello2.dnaplotlib
 import pycello2.ucf
+import pycello2.utils
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
-def evaluate_equation(node, variables):
-    param_str = ""
-    for param in node.gate.parameters.keys():
-        param_str += param + " "
-    param_syms = sympy.symbols(param_str)
-    if type(param_syms) is not tuple:
-        param_syms = (param_syms,)
-    var_str = ""
-    for var in variables.keys():
-        var_str += var
-    var_syms = sympy.symbols(var_str)
-    if type(var_syms) is not tuple:
-        var_syms = (var_syms,)
-    expr = sympy.simplify(node.gate.equation)
-
-    subs = []
-    for param in param_syms:
-        subs += ((param, node.gate.parameters[param.name]),)
-    for var in var_syms:
-        subs += ((var, variables[var.name]),)
-
-    return expr.subs(subs)
+BASAL_TRANSCRIPTION = 1e-6
+TOLERANCE = 1e-5
 
 
 def get_node_logic(node, logic):
@@ -64,7 +46,12 @@ def main():
                         required=True, help="Netlist.", metavar="FILE")
     parser.add_argument("--output", "-o",
                         required=False, help="Output file.", metavar="FILE")
+    parser.add_argument("--debug", "-d",
+                        required=False, help="Debug.", action='store_true')
     args = parser.parse_args()
+
+    level = logging.DEBUG if args.debug else logging.INFO
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=level)
 
     activity = []
     logic = []
@@ -91,7 +78,11 @@ def main():
     widths = [len(group.sequence) for group in placement.groups]
 
     fig = plt.figure(figsize=(np.sum(widths)/650, num_plots))
-    gs = fig.add_gridspec(num_plots, len(placement.groups), width_ratios=widths)
+    gs = fig.add_gridspec(
+        num_plots, len(placement.groups), width_ratios=widths
+    )
+
+    locator = FixedLocator((1e-5, 1e-3, 1e-1, 1e1, 1e3))
 
     axes = []
 
@@ -110,12 +101,17 @@ def main():
                 for part in component.parts:
                     temp.append(1.0)
                     profile.append(100.0)
-            while (np.max(np.abs(np.array(profile) - np.array(temp))) > 1e-3):
+
+            iteration = 0
+            while (np.max(np.abs(np.array(profile) - np.array(temp))) > TOLERANCE):
+                format_str = "state: {:>4d}  group: {:>4d}  iteration: {:>4d}"
+                logging.debug(format_str.format(row, col, iteration))
                 temp = profile.copy()
                 profile = []
                 for i, component in enumerate(group.components):
                     for j, part_instance in enumerate(component.parts):
-                        # offset to which we add the flux (readthrough, upstream promoter flux)
+                        # offset to which we add the flux
+                        # (readthrough, upstream promoter flux)
                         if j == 0 and i > 0:
                             offset = group.components[i-1].parts[-1].flux
                         elif j > 0:
@@ -124,18 +120,18 @@ def main():
                             offset = 0.0
 
                         if part_instance.part.type == 'promoter':
-                            upstream_node = pycello2.netlist.get_upstream_node(part_instance.part, component.node, netlist)
+                            upstream_node = pycello2.utils.get_upstream_node(part_instance.part, component.node, netlist)
                             if upstream_node.type == 'PRIMARY_INPUT':
                                 delta_flux = float(get_node_activity(upstream_node, activity)[row])
                             else:
-                                upstream_components = pycello2.netlist.get_components(upstream_node, placement)
+                                upstream_components = pycello2.utils.get_components(upstream_node, placement)
                                 input_flux = 0.0
                                 for upstream_component in upstream_components:
                                     input_flux += upstream_component.parts[-2].flux
-                                delta_flux = evaluate_equation(upstream_node, {'x': input_flux})
-                            part_instance.flux = pycello2.netlist.get_ribozyme(component).efficiency * delta_flux + offset
+                                delta_flux = pycello2.utils.evaluate_equation(upstream_node.gate, {'x': input_flux})
+                            part_instance.flux = pycello2.utils.get_ribozyme(component).efficiency * delta_flux + offset
                         if part_instance.part.type == 'ribozyme':
-                            part_instance.flux = offset / pycello2.netlist.get_ribozyme(component).efficiency
+                            part_instance.flux = offset / pycello2.utils.get_ribozyme(component).efficiency
                         if part_instance.part.type in ('cds', 'rbs'):
                             part_instance.flux = offset
                         if part_instance.part.type == 'terminator':
@@ -143,16 +139,18 @@ def main():
 
                         profile.append(part_instance.flux)
 
-            ax.set_xticks([])
+                iteration += 1
+
             ax.set_yscale('log')
+            ax.xaxis.set_major_locator(NullLocator())
+            ax.yaxis.set_major_locator(locator)
             if col > 0:
                 plt.setp(ax.get_yticklabels(), visible=False)
-                ax.tick_params(axis=u'both', which=u'both', length=0)
 
             x = []
             y = []
             last_x = 0
-            last_y = 1e-6
+            last_y = BASAL_TRANSCRIPTION
 
             for i, component in enumerate(group.components):
                 x.append([])
@@ -211,15 +209,16 @@ def main():
                 last_y = y[-1][-1]
 
             for i, component in enumerate(group.components):
-                color = 'blue' if get_node_logic(component.node,logic)[row] == 'false' else 'red'
-                color = 'black'
-                ax.plot(x[i], y[i], '-', color=color)
+                this_x = np.array(x[i], dtype=np.float64)
+                this_y = np.array(y[i], dtype=np.float64)
+                ax.plot(this_x, this_y, '-', color='black', lw=1)
+                ax.fill_between(this_x, this_y, 1e-10, fc='black', alpha=0.1)
 
             ax.set_xlim(x[0][0], x[-1][-1])
+            ax.set_ylim(1e-4, 1e2)
 
     for i, group in enumerate(placement.groups):
         ax_dna = fig.add_subplot(gs[-1, i])
-        inv = ax_dna.transData.inverted()
         design = designs[0][i]
         for part in design:
             if part['type'] == 'Promoter':
@@ -227,22 +226,29 @@ def main():
             if part['type'] == 'Terminator':
                 part['opts']['x_extent'] = np.sum(widths)/100
             if part['type'] == 'CDS':
-                part['opts']['arrowhead_length'] = np.sum(widths)/100
+                part['opts']['arrowhead_length'] = np.sum(widths)/50
+                part['opts']['y_extent'] = 1
 
         dr = dpl.DNARenderer()
         start, end = dr.renderDNA(ax_dna, design, dr.trace_part_renderers())
         ax_dna.set_xlim([start, end])
         ax_dna.set_ylim([-5, 10])
         ax_dna.set_aspect('auto')
-        ax_dna.set_xticks([])
-        ax_dna.set_yticks([])
         ax_dna.axis('off')
+
+    label_x = 0.02
+    label_y = (1.0 + (1.0/num_plots))/2.0
+    fig.text(
+        label_x, label_y, "predicted transcription (RPU)",
+        va='center', ha='center', rotation='vertical'
+    )
 
     if (args.output):
         out_file = args.output
     else:
         out_file = 'out'
-    plt.tight_layout()
+
+    plt.tight_layout(rect=[0.025, 0., 1., 1.])
     plt.subplots_adjust(hspace=0.0, wspace=0.1)
     plt.savefig(out_file + '.png', bbox_to_inches='tight')
 
