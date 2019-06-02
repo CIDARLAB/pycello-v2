@@ -17,6 +17,14 @@ class Gate:
         self.__name = name
 
     @property
+    def group(self):
+        return self.__group
+
+    @group.setter
+    def group(self,group):
+        self.__group = group
+
+    @property
     def promoter(self):
         return self.__promoter
 
@@ -87,6 +95,12 @@ class Part:
     def sequence(self,sequence):
         self.__sequence = sequence
 
+class InputSensor(Gate):
+    pass
+
+class OutputReporter(Gate):
+    pass
+
 class Terminator(Part):
     
     @property
@@ -141,7 +155,7 @@ class UCF:
                 gate.parts = parts
                 self.gates.append(gate)
             if coll['collection'] == 'input_sensors':
-                sensor = Gate()
+                sensor = InputSensor()
                 sensor.name = coll['name']
                 sensor.promoter = self.part(coll['promoter'])
                 parts = []
@@ -150,7 +164,7 @@ class UCF:
                 sensor.parts = parts
                 self.gates.append(sensor)
             if coll['collection'] == 'output_reporters':
-                reporter = Gate()
+                reporter = OutputReporter()
                 reporter.name = coll['name']
                 parts = []
                 for part in coll['parts']:
@@ -169,6 +183,9 @@ class UCF:
                 for var in coll['variables']:
                     variables.append(var['name'])
                 gate.variables = variables
+            if coll['collection'] == 'gates':
+                gate = self.gate(coll['gate_name'])
+                gate.group = coll['group_name']
             
     @property
     def parts(self):
