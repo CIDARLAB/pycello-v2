@@ -8,6 +8,12 @@ class Gate:
         self.name = ""
         self.promoter = ""
 
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
     @property
     def name(self):
         return self.__name
@@ -96,7 +102,22 @@ class Part:
         self.__sequence = sequence
 
 class InputSensor(Gate):
-    pass
+    
+    @property
+    def hi(self):
+        return self.__hi
+
+    @hi.setter
+    def hi(self,hi):
+        self.__hi = hi
+
+    @property
+    def lo(self):
+        return self.__lo
+
+    @lo.setter
+    def lo(self,lo):
+        self.__lo = lo
 
 class OutputReporter(Gate):
     pass
@@ -158,6 +179,8 @@ class UCF:
                 sensor = InputSensor()
                 sensor.name = coll['name']
                 sensor.promoter = self.part(coll['promoter'])
+                sensor.hi = coll['signal_high']
+                sensor.lo = coll['signal_low']
                 parts = []
                 for part in coll['parts']:
                     parts.append(self.part(part))
