@@ -1,0 +1,113 @@
+{
+    "name": "default",
+    "inputFilename": "default.v",
+    "placements": [],
+    "nodes": [
+        {
+            "name": "output_YFP",
+            "nodeType": "PRIMARY_OUTPUT",
+            "partitionID": -1,
+            "gateType": "YFP_reporter"
+        },
+        {
+            "name": "P3_PhlF",
+            "nodeType": "NOR",
+            "partitionID": -1,
+            "gateType": "P3_PhlF"
+        },
+        {
+            "name": "A1_AmtR",
+            "nodeType": "NOR",
+            "partitionID": -1,
+            "gateType": "A1_AmtR"
+        },
+        {
+            "name": "E1_BetI",
+            "nodeType": "NOT",
+            "partitionID": -1,
+            "gateType": "E1_BetI"
+        },
+        {
+            "name": "H1_HlyIIR",
+            "nodeType": "NOR",
+            "partitionID": -1,
+            "gateType": "H1_HlyIIR"
+        },
+        {
+            "name": "S2_SrpR",
+            "nodeType": "NOT",
+            "partitionID": -1,
+            "gateType": "S2_SrpR"
+        },
+        {
+            "name": "input_pBAD",
+            "nodeType": "PRIMARY_INPUT",
+            "partitionID": -1,
+            "gateType": "AraC_sensor"
+        },
+        {
+            "name": "input_pTac",
+            "nodeType": "PRIMARY_INPUT",
+            "partitionID": -1,
+            "gateType": "LacI_sensor"
+        },
+        {
+            "name": "input_pTet",
+            "nodeType": "PRIMARY_INPUT",
+            "partitionID": -1,
+            "gateType": "TetR_sensor"
+        }
+    ],
+    "edges": [
+        {
+            "name": "A1_AmtR_output_YFP",
+            "src": "A1_AmtR",
+            "dst": "output_YFP"
+        },
+        {
+            "name": "P3_PhlF_output_YFP",
+            "src": "P3_PhlF",
+            "dst": "output_YFP"
+        },
+        {
+            "name": "S2_SrpR_P3_PhlF",
+            "src": "S2_SrpR",
+            "dst": "P3_PhlF"
+        },
+        {
+            "name": "E1_BetI_P3_PhlF",
+            "src": "E1_BetI",
+            "dst": "P3_PhlF"
+        },
+        {
+            "name": "input_pBAD_A1_AmtR",
+            "src": "input_pBAD",
+            "dst": "A1_AmtR"
+        },
+        {
+            "name": "H1_HlyIIR_A1_AmtR",
+            "src": "H1_HlyIIR",
+            "dst": "A1_AmtR"
+        },
+        {
+            "name": "H1_HlyIIR_E1_BetI",
+            "src": "H1_HlyIIR",
+            "dst": "E1_BetI"
+        },
+        {
+            "name": "input_pTac_H1_HlyIIR",
+            "src": "input_pTac",
+            "dst": "H1_HlyIIR"
+        },
+        {
+            "name": "input_pTet_H1_HlyIIR",
+            "src": "input_pTet",
+            "dst": "H1_HlyIIR"
+        },
+        {
+            "name": "input_pBAD_S2_SrpR",
+            "src": "input_pBAD",
+            "dst": "S2_SrpR"
+        }
+    ]
+}
