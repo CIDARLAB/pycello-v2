@@ -70,6 +70,14 @@ class Gate:
     def variables(self,variables):
         self.__variables = variables
 
+    @property
+    def color(self):
+        return self.__color
+
+    @color.setter
+    def color(self,color):
+        self.__color = color
+
 class Part:
 
     def __init__(self):
@@ -209,6 +217,7 @@ class UCF:
             if coll['collection'] == 'gates':
                 gate = self.gate(coll['gate_name'])
                 gate.group = coll['group_name']
+                gate.color = coll['color_hexcode']
             
     @property
     def parts(self):
