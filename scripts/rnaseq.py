@@ -73,13 +73,22 @@ def main():
 
     placement = netlist.placements[0]
 
+    skip = []
+    for i, group in enumerate(placement.groups):
+        f = True
+        for component in group.components:
+            if component.node.type == "PRIMARY_INPUT":
+                f = False
+                skip.append(i)
+                break
+
     num_plots = len(logic[0])
 
-    widths = [len(group.sequence) for group in placement.groups]
+    widths = [len(group.sequence) for i, group in enumerate(placement.groups) if i not in skip]
 
     fig = plt.figure(figsize=(np.sum(widths)/650, num_plots))
     gs = fig.add_gridspec(
-        num_plots, len(placement.groups), width_ratios=widths
+        num_plots, len(placement.groups) - len(skip), width_ratios=widths
     )
 
     locator = FixedLocator((1e-5, 1e-3, 1e-1, 1e1, 1e3))
@@ -89,7 +98,10 @@ def main():
     for row in range(num_plots - 1):
         axes_row = []
         axes.append(axes_row)
-        for col, group in enumerate(placement.groups):
+        col = 0
+        for j, group in enumerate(placement.groups):
+            if j in skip:
+                continue
             sharex = axes[row - 1][col] if row > 0 else None
             sharey = axes[0][0] if (row != 0 or col != 0) else None
             ax = fig.add_subplot(gs[row, col], sharex=sharex, sharey=sharey)
@@ -140,6 +152,8 @@ def main():
                         profile.append(part_instance.flux)
 
                 iteration += 1
+
+            col += 1
 
             ax.set_yscale('log')
             ax.xaxis.set_major_locator(NullLocator())
@@ -217,8 +231,11 @@ def main():
             ax.set_xlim(x[0][0], x[-1][-1])
             ax.set_ylim(1e-4, 1e2)
 
+    j = 0
     for i, group in enumerate(placement.groups):
-        ax_dna = fig.add_subplot(gs[-1, i])
+        if i in skip:
+            continue
+        ax_dna = fig.add_subplot(gs[-1, j])
         design = designs[0][i]
         for part in design:
             if part['type'] == 'Promoter':
@@ -235,6 +252,7 @@ def main():
         ax_dna.set_ylim([-5, 10])
         ax_dna.set_aspect('auto')
         ax_dna.axis('off')
+        j += 1
 
     label_x = 0.02
     label_y = (1.0 + (1.0/num_plots))/2.0
