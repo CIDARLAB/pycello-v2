@@ -66,7 +66,16 @@ def main():
         for row in logic_reader:
             logic.append(row)
     with open(args.netlist, 'r') as netlist_file:
-        netlist = pycello2.netlist.Netlist(json.load(netlist_file), ucf)
+        text = netlist_file.read();
+        text = re.sub(r"(\")\s*,\s*(})", r"\1\2", text)
+        text = re.sub(r"(\")\s*,\s*(])", r"\1\2", text)
+        text = re.sub(r"(})\s*,\s*(])", r"\1\2", text)
+        text = re.sub(r"(])\s*,\s*(])", r"\1\2", text)
+        text = re.sub(r"(})\s*,\s*(})", r"\1\2", text)
+        text = re.sub(r"(])\s*,\s*(})", r"\1\2", text)
+        text = re.sub(r",\s*$", r"", text)
+
+        netlist = pycello2.netlist.Netlist(json.loads(text), ucf)
 
     # dnaplotlib specifications
     designs = pycello2.dnaplotlib.get_designs(netlist)
