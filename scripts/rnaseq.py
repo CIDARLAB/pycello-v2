@@ -190,7 +190,6 @@ def main():
             last_y = BASAL_TRANSCRIPTION
 
             for i, component in enumerate(group.components):
-                [print(p.part.name) for p in component.parts]
                 x.append([])
                 y.append([])
 
