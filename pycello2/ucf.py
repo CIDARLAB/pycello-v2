@@ -170,29 +170,26 @@ class UCF:
         for coll in ucf:
             if coll['collection'] == 'terminators':
                 terminator = self.part(coll['name'])
-                terminator.strength = coll['strength']
+                if (terminator):
+                    terminator.strength = coll['strength']
             if coll['collection'] == 'ribozymes':
                 ribozyme = self.part(coll['name'])
-                ribozyme.efficiency = coll['efficiency']
-            if coll['collection'] == 'gate_parts':
+                if (ribozyme):
+                    ribozyme.efficiency = coll['efficiency']
+            if coll['collection'] == 'gate_structure':
                 gate = Gate()
                 gate.name = coll['gate_name']
-                gate.promoter = self.part(coll['promoter'])
-                parts = []
-                for part in coll['expression_cassettes'][0]['cassette_parts']:
-                    parts.append(self.part(part))
-                gate.parts = parts
+                gate.promoter = self.part(coll['output'])
+                # parts = []
+                # for part in coll['expression_cassettes'][0]['cassette_parts']:
+                #     parts.append(self.part(part))
+                # gate.parts = parts
                 self.gates.append(gate)
             if coll['collection'] == 'input_sensors':
                 sensor = InputSensor()
                 sensor.name = coll['name']
                 sensor.promoter = self.part(coll['promoter'])
-                sensor.hi = coll['signal_high']
-                sensor.lo = coll['signal_low']
-                parts = []
-                for part in coll['parts']:
-                    parts.append(self.part(part))
-                sensor.parts = parts
+                sensor.parameters = coll['parameters']
                 self.gates.append(sensor)
             if coll['collection'] == 'output_reporters':
                 reporter = OutputReporter()
