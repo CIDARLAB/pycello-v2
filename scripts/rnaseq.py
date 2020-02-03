@@ -6,6 +6,7 @@ import json
 import csv
 import dnaplotlib as dpl
 import logging
+import re
 
 import pycello2.netlist
 import pycello2.dnaplotlib
@@ -38,6 +39,10 @@ def main():
     )
     parser.add_argument("--ucf", "-u",
                         required=True, help="UCF file.", metavar="FILE")
+    parser.add_argument("--input-sensors", "-i", dest="sensors",
+                        required=True, help="Input sensors file.", metavar="FILE")
+    parser.add_argument("--output-devices", "-x", dest="outputs",
+                        required=True, help="Output reporters file.", metavar="FILE")
     parser.add_argument("--activity-table", "-a", dest="activity",
                         required=True, help="Activity table.", metavar="FILE")
     parser.add_argument("--logic-table", "-l", dest="logic",
@@ -56,7 +61,16 @@ def main():
     activity = []
     logic = []
     with open(args.ucf, 'r') as ucf_file:
-        ucf = pycello2.ucf.UCF(json.load(ucf_file))
+        ucf = json.load(ucf_file)
+    with open(args.sensors, 'r') as sensors_file:
+        sensors = json.load(sensors_file)
+    with open(args.outputs, 'r') as outputs_file:
+        outputs = json.load(outputs_file)
+    for item in sensors:
+        ucf.append(item)
+    for item in outputs:
+        ucf.append(item)
+    ucf = pycello2.ucf.UCF(ucf)
     with open(args.activity, 'r') as activity_file:
         activity_reader = csv.reader(activity_file)
         for row in activity_reader:
@@ -86,7 +100,7 @@ def main():
     for i, group in enumerate(placement.groups):
         f = True
         for component in group.components:
-            if component.node.type == "PRIMARY_INPUT":
+            if component.node.type == "PRIMARY_INPUT" or component.node.type == "PRIMARY_OUTPUT":
                 f = False
                 skip.append(i)
                 break
@@ -176,6 +190,7 @@ def main():
             last_y = BASAL_TRANSCRIPTION
 
             for i, component in enumerate(group.components):
+                [print(p.part.name) for p in component.parts]
                 x.append([])
                 y.append([])
 

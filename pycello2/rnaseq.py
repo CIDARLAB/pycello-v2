@@ -88,6 +88,22 @@ def rnaseq(ucf, netlist, activity, logic):
     return rtn
 
 
+def plot_rnaseq(rnaseq, designs):
+    """Plot RNA-seq data.
+
+    Parameters
+    ----------
+    rnaseq : list
+        The json representation of the rnaseq data, as returned by `get_json`.
+
+    """
+    for placement in rnaseq:
+        
+    num_plots = logic.shape[0]
+    widths = [len(group.sequence) for i, group in enumerate(placement.groups) if i not in skip]
+    pass
+
+
 def get_json(rnaseq):
     """Get a json representation of the RNAseq profile."""
     rtn = []
@@ -100,25 +116,6 @@ def get_json(rnaseq):
             for part in state.keys():
                 y.append({"name": part.part.name, "value": state[part]})
     return rtn
-
-
-def main(args):
-    activity = []
-    logic = []
-    with open(args.ucf, 'r') as ucf_fp:
-        ucf = pycello2.ucf.UCF(json.load(ucf_fp))
-    with open(args.activity, 'r') as activity_fp:
-        activity_reader = csv.reader(activity_fp)
-        for row in activity_reader:
-            activity.append(row)
-    with open(args.logic, 'r') as logic_fp:
-        logic_reader = csv.reader(logic_fp)
-        for row in logic_reader:
-            logic.append(row)
-    with open(args.netlist, 'r') as netlist_fp:
-        netlist = pycello2.netlist.Netlist(json.load(netlist_fp), ucf)
-
-    return rnaseq(ucf, netlist, activity, logic)
 
 
 if __name__ == "__main__":
@@ -139,4 +136,20 @@ if __name__ == "__main__":
                         required=False, help="Debug.", action='store_true')
     args = parser.parse_args()
 
-    main(args)
+        activity = []
+    logic = []
+    with open(args.ucf, 'r') as ucf_fp:
+        ucf = pycello2.ucf.UCF(json.load(ucf_fp))
+    with open(args.activity, 'r') as activity_fp:
+        activity_reader = csv.reader(activity_fp)
+        for row in activity_reader:
+            activity.append(row)
+    with open(args.logic, 'r') as logic_fp:
+        logic_reader = csv.reader(logic_fp)
+        for row in logic_reader:
+            logic.append(row)
+    with open(args.netlist, 'r') as netlist_fp:
+        netlist = pycello2.netlist.Netlist(json.load(netlist_fp), ucf)
+
+    seq = rnaseq(ucf, netlist, activity, logic)
+    data = get_json(seq)
