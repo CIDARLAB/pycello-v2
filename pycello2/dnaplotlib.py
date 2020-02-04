@@ -10,10 +10,14 @@ def get_cds(component):
             return part_instance
 
 
+def get_color(color):
+    return (int(color[0:2], 16)/255, int(color[2:4], 16)/255, int(color[4:6], 16)/255)
+
 def get_designs(netlist):
     color_map = {'YFP': 'white'}
     dpl_designs = []
     for placement in netlist.placements:
+        # color
         it = iter(['C' + str(i) for i in range(10)])
         dpl_design = []
         dpl_designs.append(dpl_design)
@@ -27,6 +31,8 @@ def get_designs(netlist):
                     if part_instance.part.type == 'cds':
                         if part_instance.part.name in color_map:
                             part_instance.color = color_map[part_instance.part.name]
+                        elif (component.node.gate.color):
+                            part_instance.color = get_color(component.node.gate.color)
                         else:
                             color = next(it)
                             color_map[part_instance.part.name] = color
