@@ -18,7 +18,7 @@ setup(
         "sympy>=1.5",
         "numpy>=1.17"
     ],
-    long_description = read('README.org')
+    long_description = read('README.org'),
     classifiers = [
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
