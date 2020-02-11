@@ -14,8 +14,11 @@ setup(
     keywords = "cello cellular-logic synthetic-biology",
     url = "https://github.com/tim-tx/pycello2",
     packages = find_packages(),
-    install_requires = [],
-    long_description = read('README.org'),
+    install_requires = [
+        "sympy>=1.5",
+        "numpy>=1.17"
+    ],
+    long_description = read('README.org')
     classifiers = [
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
