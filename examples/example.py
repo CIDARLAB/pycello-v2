@@ -1,5 +1,5 @@
-import pycello2.netlist
-import pycello2.ucf
+import pycello.netlist
+import pycello.ucf
 
 import json
 
@@ -9,8 +9,8 @@ with open('Eco1C1G1T1-synbiohub.UCF.json') as ucf_file:
 with open('and_outputNetlist.json') as netlist_file:
     netlist_json = json.load(netlist_file)
 
-ucf = pycello2.ucf.UCF(ucf_json)
-netlist = pycello2.netlist.Netlist(netlist_json, ucf)
+ucf = pycello.ucf.UCF(ucf_json)
+netlist = pycello.netlist.Netlist(netlist_json, ucf)
 
 nodes = [node.name for node in netlist.nodes]
 edges = [(edge.src.name, edge.dst.name) for edge in netlist.edges]

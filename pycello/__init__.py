@@ -8,6 +8,6 @@ import sys
 __version__ = '0.0.1'
 
 if not (sys.version_info.major == 3):
-    raise ImportError("pycello2 requires Python 3")
+    raise ImportError("pycello requires Python 3")
 
 del sys

@@ -1,5 +1,5 @@
-import pycello2.netlist
-import pycello2.ucf
+import pycello.netlist
+import pycello.ucf
 import json
 import unittest
 import pickle
@@ -16,7 +16,7 @@ class TestNetlist(unittest.TestCase):
         with open('../examples/Eco1C1G1T1-synbiohub.UCF.json') as ucf_file:
             ucf_json = json.load(ucf_file)
 
-        ucf = pycello2.ucf.UCF(ucf_json)
+        ucf = pycello.ucf.UCF(ucf_json)
         self.ucf = ucf
         self.maxDiff = 4000
 
@@ -24,7 +24,7 @@ class TestNetlist(unittest.TestCase):
         with open('../examples/and_outputNetlist.json') as netlist_file:
             netlist_json = json.load(netlist_file)
 
-        netlist = pycello2.netlist.Netlist(netlist_json, self.ucf)
+        netlist = pycello.netlist.Netlist(netlist_json, self.ucf)
 
         nodes = set([node.name for node in netlist.nodes])
         nodes_ref = set(['a', 'b', 'out', '$48', '$49', '$50'])
@@ -35,7 +35,7 @@ class TestNetlist(unittest.TestCase):
         with open('../examples/0x78_A000_logic_circuit.txt') as lc_file:
             lc_text = lc_file.readlines()
 
-        netlist = pycello2.netlist.Netlist.fromLogicCircuit(lc_text, self.ucf)
+        netlist = pycello.netlist.Netlist.fromLogicCircuit(lc_text, self.ucf)
 
         nodes = set([node.name for node in netlist.nodes])
 

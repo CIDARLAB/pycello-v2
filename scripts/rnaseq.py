@@ -8,10 +8,10 @@ import dnaplotlib as dpl
 import logging
 import re
 
-import pycello2.netlist
-import pycello2.dnaplotlib
-import pycello2.ucf
-import pycello2.utils
+import pycello.netlist
+import pycello.dnaplotlib
+import pycello.ucf
+import pycello.utils
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
@@ -70,7 +70,7 @@ def main():
         ucf.append(item)
     for item in outputs:
         ucf.append(item)
-    ucf = pycello2.ucf.UCF(ucf)
+    ucf = pycello.ucf.UCF(ucf)
     with open(args.activity, 'r') as activity_file:
         activity_reader = csv.reader(activity_file)
         for row in activity_reader:
@@ -89,10 +89,10 @@ def main():
         text = re.sub(r"(])\s*,\s*(})", r"\1\2", text)
         text = re.sub(r",\s*$", r"", text)
 
-        netlist = pycello2.netlist.Netlist(json.loads(text), ucf)
+        netlist = pycello.netlist.Netlist(json.loads(text), ucf)
 
     # dnaplotlib specifications
-    designs = pycello2.dnaplotlib.get_designs(netlist)
+    designs = pycello.dnaplotlib.get_designs(netlist)
 
     # placement = netlist.placements[0]
     for placement_num, placement in enumerate(netlist.placements):
@@ -156,18 +156,18 @@ def main():
                                 offset = 0.0
 
                             if part_instance.part.type == 'promoter':
-                                upstream_node = pycello2.utils.get_upstream_node(part_instance.part, component.node, netlist)
+                                upstream_node = pycello.utils.get_upstream_node(part_instance.part, component.node, netlist)
                                 if upstream_node.type == 'PRIMARY_INPUT':
                                     delta_flux = float(get_node_activity(upstream_node, activity)[row])
                                 else:
-                                    upstream_components = pycello2.utils.get_components(upstream_node, placement)
+                                    upstream_components = pycello.utils.get_components(upstream_node, placement)
                                     input_flux = 0.0
                                     for upstream_component in upstream_components:
                                         input_flux += upstream_component.parts[-2].flux
-                                    delta_flux = pycello2.utils.evaluate_equation(upstream_node.gate, {'x': input_flux})
-                                part_instance.flux = pycello2.utils.get_ribozyme(component).efficiency * delta_flux + offset
+                                    delta_flux = pycello.utils.evaluate_equation(upstream_node.gate, {'x': input_flux})
+                                part_instance.flux = pycello.utils.get_ribozyme(component).efficiency * delta_flux + offset
                             if part_instance.part.type == 'ribozyme':
-                                part_instance.flux = offset / pycello2.utils.get_ribozyme(component).efficiency
+                                part_instance.flux = offset / pycello.utils.get_ribozyme(component).efficiency
                             if part_instance.part.type in ('cds', 'rbs'):
                                 part_instance.flux = offset
                             if part_instance.part.type == 'terminator':

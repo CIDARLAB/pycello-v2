@@ -2,9 +2,9 @@ import json
 import argparse
 import matplotlib.pyplot as plt
 import dnaplotlib as dpl
-import pycello2.netlist
-import pycello2.ucf
-import pycello2.dnaplotlib
+import pycello.netlist
+import pycello.ucf
+import pycello.dnaplotlib
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
@@ -23,11 +23,11 @@ def main():
     args = parser.parse_args()
 
     with open(args.ucf, 'r') as ucf_file:
-        ucf = pycello2.ucf.UCF(json.load(ucf_file))
+        ucf = pycello.ucf.UCF(json.load(ucf_file))
     with open(args.netlist, 'r') as netlist_file:
-        netlist = pycello2.netlist.Netlist(json.load(netlist_file), ucf)
+        netlist = pycello.netlist.Netlist(json.load(netlist_file), ucf)
 
-    designs = pycello2.dnaplotlib.get_designs(netlist)
+    designs = pycello.dnaplotlib.get_designs(netlist)
 
     fig = plt.figure(figsize=(5, len(designs)*1))
 

@@ -1,5 +1,5 @@
-from pycello2.netlist import Component, Node, Netlist, Placement
-from pycello2.ucf import Gate, Part
+from pycello.netlist import Component, Node, Netlist, Placement
+from pycello.ucf import Gate, Part
 import sympy
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
@@ -11,8 +11,8 @@ def get_upstream_nodes(node: Node, netlist: Netlist):
 
     Parameters
     ----------
-    node : pycello2.netlist.Node
-    netlist : pycello2.netlist.Netlist
+    node : pycello.netlist.Node
+    netlist : pycello.netlist.Netlist
 
     """
     upstream = []
@@ -27,9 +27,9 @@ def get_upstream_node(promoter: Part, node: Node, netlist: Netlist):
 
     Parameters
     ----------
-    promoter : pycello2.ucf.Part
-    node : pycello2.netlist.Node
-    netlist : pycello2.netlist.Netlist
+    promoter : pycello.ucf.Part
+    node : pycello.netlist.Node
+    netlist : pycello.netlist.Netlist
 
     """
     for upstream in get_upstream_nodes(node, netlist):
@@ -43,7 +43,7 @@ def get_cds(component: Component):
 
     Parameters
     ----------
-    component : pycello2.netlist.Component
+    component : pycello.netlist.Component
 
     Notes
     -----
@@ -61,7 +61,7 @@ def get_ribozyme(component: Component):
 
     Parameters
     ----------
-    component : pycello2.netlist.Component
+    component : pycello.netlist.Component
 
     Notes
     -----
@@ -79,8 +79,8 @@ def get_components(node: Node, placement: Placement):
 
     Parameters
     ----------
-    node : pycello2.netlist.Node
-    placement : pycello2.netlist.Placement
+    node : pycello.netlist.Node
+    placement : pycello.netlist.Placement
 
     """
     components = []
@@ -96,7 +96,7 @@ def evaluate_equation(gate: Gate, variables: dict):
 
     Parameters
     ----------
-    gate : pycello2.ucf.Gate
+    gate : pycello.ucf.Gate
     variables: dict
 
     """
