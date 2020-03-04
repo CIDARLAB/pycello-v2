@@ -1,11 +1,11 @@
 """
-``cello2`` is a module that reads a netlist in the Cello2 JSON format
+``pycello`` is a module that reads a netlist in the Cello v2 JSON format
 into a Python class structure.
 """
 
 import sys
 
-__version__ = '0.0.1'
+__version__ = '2.0.0'
 
 if not (sys.version_info.major == 3):
     raise ImportError("pycello requires Python 3")

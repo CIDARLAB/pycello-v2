@@ -13,6 +13,7 @@ def get_cds(component):
 def get_color(color):
     return (int(color[0:2], 16)/255, int(color[2:4], 16)/255, int(color[4:6], 16)/255)
 
+
 def get_designs(netlist):
     color_map = {'YFP': 'white'}
     dpl_designs = []

@@ -97,10 +97,10 @@ def plot_rnaseq(rnaseq, designs):
         The json representation of the rnaseq data, as returned by `get_json`.
 
     """
-    for placement in rnaseq:
-        
-    num_plots = logic.shape[0]
-    widths = [len(group.sequence) for i, group in enumerate(placement.groups) if i not in skip]
+    # for placement in rnaseq:
+
+    # num_plots = logic.shape[0]
+    # widths = [len(group.sequence) for i, group in enumerate(placement.groups) if i not in skip]
     pass
 
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
                         required=False, help="Debug.", action='store_true')
     args = parser.parse_args()
 
-        activity = []
+    activity = []
     logic = []
     with open(args.ucf, 'r') as ucf_fp:
         ucf = pycello.ucf.UCF(json.load(ucf_fp))

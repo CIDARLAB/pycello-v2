@@ -19,7 +19,7 @@ class Gate:
         return self.__name
 
     @name.setter
-    def name(self,name):
+    def name(self, name):
         self.__name = name
 
     @property
@@ -27,7 +27,7 @@ class Gate:
         return self.__group
 
     @group.setter
-    def group(self,group):
+    def group(self, group):
         self.__group = group
 
     @property
@@ -35,7 +35,7 @@ class Gate:
         return self.__promoter
 
     @promoter.setter
-    def promoter(self,promoter):
+    def promoter(self, promoter):
         self.__promoter = promoter
 
     @property
@@ -43,7 +43,7 @@ class Gate:
         return self.__parts
 
     @parts.setter
-    def parts(self,parts):
+    def parts(self, parts):
         self.__parts = parts
 
     @property
@@ -51,7 +51,7 @@ class Gate:
         return self.__equation
 
     @equation.setter
-    def equation(self,equation):
+    def equation(self, equation):
         self.__equation = equation
 
     @property
@@ -59,7 +59,7 @@ class Gate:
         return self.__parameters
 
     @parameters.setter
-    def parameters(self,parameters):
+    def parameters(self, parameters):
         self.__parameters = parameters
 
     @property
@@ -67,7 +67,7 @@ class Gate:
         return self.__variables
 
     @variables.setter
-    def variables(self,variables):
+    def variables(self, variables):
         self.__variables = variables
 
     @property
@@ -75,8 +75,9 @@ class Gate:
         return self.__color
 
     @color.setter
-    def color(self,color):
+    def color(self, color):
         self.__color = color
+
 
 class Part:
 
@@ -90,7 +91,7 @@ class Part:
         return self.__name
 
     @name.setter
-    def name(self,name):
+    def name(self, name):
         self.__name = name
 
     @property
@@ -98,7 +99,7 @@ class Part:
         return self.__type
 
     @type.setter
-    def type(self,type):
+    def type(self, type):
         self.__type = type
 
     @property
@@ -106,17 +107,18 @@ class Part:
         return self.__sequence
 
     @sequence.setter
-    def sequence(self,sequence):
+    def sequence(self, sequence):
         self.__sequence = sequence
 
+
 class InputSensor(Gate):
-    
+
     @property
     def hi(self):
         return self.__hi
 
     @hi.setter
-    def hi(self,hi):
+    def hi(self, hi):
         self.__hi = hi
 
     @property
@@ -124,35 +126,39 @@ class InputSensor(Gate):
         return self.__lo
 
     @lo.setter
-    def lo(self,lo):
+    def lo(self, lo):
         self.__lo = lo
+
 
 class OutputReporter(Gate):
     pass
 
+
 class Terminator(Part):
-    
+
     @property
     def strength(self):
         return self.__strength
 
     @strength.setter
-    def strength(self,strength):
+    def strength(self, strength):
         self.__strength = strength
 
+
 class Ribozyme(Part):
-    
+
     @property
     def efficiency(self):
         return self.__efficiency
 
     @efficiency.setter
-    def efficiency(self,efficiency):
+    def efficiency(self, efficiency):
         self.__efficiency = efficiency
+
 
 class UCF:
 
-    def __init__(self,ucf):
+    def __init__(self, ucf):
         self.parts = []
         self.gates = []
         for coll in ucf:
@@ -215,16 +221,16 @@ class UCF:
                 gate = self.gate(coll['gate_name'])
                 gate.group = coll['group_name']
                 gate.color = coll['color_hexcode']
-            
+
     @property
     def parts(self):
         return self.__parts
 
     @parts.setter
-    def parts(self,parts):
+    def parts(self, parts):
         self.__parts = parts
 
-    def part(self,name):
+    def part(self, name):
         for part in self.parts:
             if part.name == name:
                 return part
@@ -234,11 +240,10 @@ class UCF:
         return self.__gates
 
     @gates.setter
-    def gates(self,gates):
+    def gates(self, gates):
         self.__gates = gates
 
-    def gate(self,name):
+    def gate(self, name):
         for gate in self.gates:
             if gate.name == name:
                 return gate
-            

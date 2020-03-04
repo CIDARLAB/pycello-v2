@@ -102,7 +102,7 @@ def main():
             f = True
             for component in group.components:
                 if component.node.type == "PRIMARY_INPUT" or component.node.type == "PRIMARY_OUTPUT":
-                    f = False
+                    # f = False
                     skip.append(i)
                     break
 
@@ -204,8 +204,8 @@ def main():
 
                         if part_instance.part.type == 'terminator':
                             x[-1].append(initial_x)
-                            x[-1].append(initial_x + int(0.5*len(part_instance.part. sequence)))
-                            x[-1].append(initial_x + int(0.5*len(part_instance.part. sequence)))
+                            x[-1].append(initial_x + int(0.5*len(part_instance.part.sequence)))
+                            x[-1].append(initial_x + int(0.5*len(part_instance.part.sequence)))
                             x[-1].append(initial_x + len(part_instance.part.sequence))
                             y[-1].append(initial_y)
                             y[-1].append(initial_y)
