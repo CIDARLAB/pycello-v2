@@ -1,4 +1,0 @@
-* Installation
-  #+BEGIN_SRC
-    $ pip install -e .
-  #+END_SRC
