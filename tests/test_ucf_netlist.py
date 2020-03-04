@@ -1,3 +1,4 @@
+from .context import pycello
 import pycello.netlist
 import pycello.ucf
 import json
@@ -13,7 +14,7 @@ class TestNetlist(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestNetlist, self).__init__(*args, **kwargs)
 
-        with open('../examples/Eco1C1G1T1-synbiohub.UCF.json') as ucf_file:
+        with open('examples/Eco1C1G1T1-synbiohub.UCF.json') as ucf_file:
             ucf_json = json.load(ucf_file)
 
         ucf = pycello.ucf.UCF(ucf_json)
@@ -21,7 +22,7 @@ class TestNetlist(unittest.TestCase):
         self.maxDiff = 4000
 
     def test_ucf_netlist(self):
-        with open('../examples/and_outputNetlist.json') as netlist_file:
+        with open('examples/and_outputNetlist.json') as netlist_file:
             netlist_json = json.load(netlist_file)
 
         netlist = pycello.netlist.Netlist(netlist_json, self.ucf)
@@ -32,7 +33,7 @@ class TestNetlist(unittest.TestCase):
         self.assertEqual(nodes, nodes_ref, "Incorrect node list.")
 
     def test_ucf_logiccircuit(self):
-        with open('../examples/0x78_A000_logic_circuit.txt') as lc_file:
+        with open('examples/0x78_A000_logic_circuit.txt') as lc_file:
             lc_text = lc_file.readlines()
 
         netlist = pycello.netlist.Netlist.fromLogicCircuit(lc_text, self.ucf)
@@ -42,10 +43,10 @@ class TestNetlist(unittest.TestCase):
         self.assertTrue("E1_BetI" in nodes, "Incorrect nodes.")
 
     def test_json(self):
-        with open('../examples/0x78_Netlist.pickle', 'rb') as pickle_file:
+        with open('examples/0x78_Netlist.pickle', 'rb') as pickle_file:
             netlist = pickle.load(pickle_file)
 
-        with open('../examples/0x78_Netlist.json', 'r') as netlist_file:
+        with open('examples/0x78_Netlist.json', 'r') as netlist_file:
             netlist_ref = netlist_file.read()
 
         netlist = json.dumps(netlist.json, indent=4)
