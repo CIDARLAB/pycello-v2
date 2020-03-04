@@ -1,19 +1,44 @@
+import json
+import re
+from collections.abc import Iterable
+
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
+class JSONPropertyEncoder(json.JSONEncoder):
+
+    def dict_to_json(self, o):
+        d = o.__dict__
+        for key in list(d.keys()).copy():
+            val = d.pop(key)
+            d[re.sub(r"_\w+__", "", key)] = val
+        return d
+
+    def obj_to_json(self, o):
+        if isinstance(o, Iterable):
+            return [self.obj_to_json(o) for e in o]
+        else:
+            return self.dict_to_json(o)
+
+    def default(self, o):
+        return self.obj_to_json(o)
+
+
 class Header:
 
-    def __init__(self, obj):
-        self.description = obj["description"]
-        self.version = obj["version"]
-        self.date = obj["date"]
-        self.author = obj["author"]
-        self.organism = obj["organism"]
-        self.genome = obj["genome"]
-        self.media = obj["media"]
-        self.temperature = obj["temperature"]
-        self.growth = obj["growth"]
+    def __init__(self, obj=None):
+        self.collection = "header"
+        if obj:
+            self.description = obj["description"]
+            self.version = obj["version"]
+            self.date = obj["date"]
+            self.author = obj["author"]
+            self.organism = obj["organism"]
+            self.genome = obj["genome"]
+            self.media = obj["media"]
+            self.temperature = obj["temperature"]
+            self.growth = obj["growth"]
 
     @property
     def description(self):
@@ -90,11 +115,13 @@ class Header:
 
 class MeasurementStd:
 
-    def __init__(self, obj):
-        self.signal_carrier_units = obj["signal_carrier_units"]
-        self.normalization_instructions = obj["normalization_instructions"]
-        self.plasmid_description = obj["plasmid_description"]
-        self.plasmid_sequence = obj["plasmid_sequence"]
+    def __init__(self, obj=None):
+        self.collection = "measurement_std"
+        if obj:
+            self.signal_carrier_units = obj["signal_carrier_units"]
+            self.normalization_instructions = obj["normalization_instructions"]
+            self.plasmid_description = obj["plasmid_description"]
+            self.plasmid_sequence = obj["plasmid_sequence"]
 
     @property
     def signal_carrier_units(self):
@@ -131,8 +158,10 @@ class MeasurementStd:
 
 class LogicConstraints:
 
-    def __init__(self, obj):
-        self.available_gates = obj["available_gates"]
+    def __init__(self, obj=None):
+        self.collection = "logic_constraints"
+        if obj:
+            self.available_gates = obj["available_gates"]
 
     @property
     def available_gates(self):
@@ -145,10 +174,12 @@ class LogicConstraints:
 
 class LogicMotif:
 
-    def __init__(self, obj):
-        self.inputs = obj["inputs"]
-        self.netlist = obj["netlist"]
-        self.outputs = obj["outputs"]
+    def __init__(self, obj=None):
+        self.collection = "motif_library"
+        if obj:
+            self.inputs = obj["inputs"]
+            self.netlist = obj["netlist"]
+            self.outputs = obj["outputs"]
 
     @property
     def inputs(self):
@@ -177,14 +208,15 @@ class LogicMotif:
 
 class Parameter:
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        if "value" in obj:
-            self.value = obj["value"]
-        if "map" in obj:
-            self.map = obj["map"]
-        if "description" in obj:
-            self.description = obj["description"]
+    def __init__(self, obj=None):
+        if obj:
+            self.name = obj["name"]
+            if "value" in obj:
+                self.value = obj["value"]
+            if "map" in obj:
+                self.map = obj["map"]
+            if "description" in obj:
+                self.description = obj["description"]
 
     @property
     def name(self):
@@ -221,9 +253,10 @@ class Parameter:
 
 class Variable:
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.map = obj["map"]
+    def __init__(self, obj=None):
+        if obj:
+            self.name = obj["name"]
+            self.map = obj["map"]
 
     @property
     def name(self):
@@ -250,16 +283,18 @@ class AssignableDevice:
 
 class Gate(AssignableDevice):
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.regulator = obj["regulator"]
-        self.group = obj["group"]
-        self.gate_type = obj["gate_type"]
-        self.system = obj["system"]
-        if "color" in obj:
-            self.color = obj["color"]
-        self.model = obj["model"]
-        self.structure = obj["structure"]
+    def __init__(self, obj=None):
+        self.collection = "gates"
+        if obj:
+            self.name = obj["name"]
+            self.regulator = obj["regulator"]
+            self.group = obj["group"]
+            self.gate_type = obj["gate_type"]
+            self.system = obj["system"]
+            if "color" in obj:
+                self.color = obj["color"]
+            self.model = obj["model"]
+            self.structure = obj["structure"]
 
     # def __lt__(self, other):
     #     return self.name < other.name
@@ -334,10 +369,12 @@ class Gate(AssignableDevice):
 
 class InputSensor(AssignableDevice):
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.model = obj["model"]
-        self.structure = obj["structure"]
+    def __init__(self, obj=None):
+        self.collection = "input_sensors"
+        if obj:
+            self.name = obj["name"]
+            self.model = obj["model"]
+            self.structure = obj["structure"]
 
     @property
     def name(self):
@@ -366,10 +403,12 @@ class InputSensor(AssignableDevice):
 
 class OutputDevice(AssignableDevice):
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.model = obj["model"]
-        self.structure = obj["structure"]
+    def __init__(self, obj=None):
+        self.collection = "output_devices"
+        if obj:
+            self.name = obj["name"]
+            self.model = obj["model"]
+            self.structure = obj["structure"]
 
     @property
     def name(self):
@@ -398,10 +437,12 @@ class OutputDevice(AssignableDevice):
 
 class Model:
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.functions = obj["functions"]
-        self.parameters = obj["parameters"]
+    def __init__(self, obj=None):
+        self.collection = "models"
+        if obj:
+            self.name = obj["name"]
+            self.functions = obj["functions"]
+            self.parameters = obj["parameters"]
 
     @property
     def name(self):
@@ -430,11 +471,13 @@ class Model:
 
 class Structure:
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.inputs = obj["inputs"]
-        self.outputs = obj["outputs"]
-        self.devices = obj["devices"]
+    def __init__(self, obj=None):
+        self.collection = "structures"
+        if obj:
+            self.name = obj["name"]
+            self.inputs = obj["inputs"]
+            self.outputs = obj["outputs"]
+            self.devices = obj["devices"]
 
     @property
     def name(self):
@@ -471,16 +514,18 @@ class Structure:
 
 class Function:
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        if "equation" in obj:
-            self.equation = obj["equation"]
-        if "table" in obj:
-            self.table = obj["table"]
-        if "variables" in obj:
-            self.variables = obj["variables"]
-        if "parameters" in obj:
-            self.parameters = obj["parameters"]
+    def __init__(self, obj=None):
+        self.collection = "functions"
+        if obj:
+            self.name = obj["name"]
+            if "equation" in obj:
+                self.equation = obj["equation"]
+            if "table" in obj:
+                self.table = obj["table"]
+            if "variables" in obj:
+                self.variables = obj["variables"]
+            if "parameters" in obj:
+                self.parameters = obj["parameters"]
 
     @property
     def name(self):
@@ -525,12 +570,14 @@ class Function:
 
 class Part:
 
-    def __init__(self, obj):
-        self.name = obj["name"]
-        self.type = obj["type"]
-        self.dnasequence = obj["dnasequence"]
-        if "parameters" in obj:
-            self.parameters = obj["parameters"]
+    def __init__(self, obj=None):
+        self.collection = "parts"
+        if obj:
+            self.name = obj["name"]
+            self.type = obj["type"]
+            self.dnasequence = obj["dnasequence"]
+            if "parameters" in obj:
+                self.parameters = obj["parameters"]
 
     @property
     def name(self):
