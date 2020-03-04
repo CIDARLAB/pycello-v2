@@ -275,6 +275,54 @@ class Variable:
         self.__map = map
 
 
+class Device:
+
+    def __init__(self, obj=None):
+        if obj:
+            self.name = obj["name"]
+            self.components = obj["components"]
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, name):
+        self.__name = name
+
+    @property
+    def components(self):
+        return self.__components
+
+    @components.setter
+    def components(self, components):
+        self.__components = components
+
+
+class Input:
+
+    def __init__(self, obj=None):
+        if obj:
+            self.name = obj["name"]
+            self.part_type = obj["part_type"]
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, name):
+        self.__name = name
+
+    @property
+    def part_type(self):
+        return self.__part_type
+
+    @part_type.setter
+    def part_type(self, part_type):
+        self.__part_type = part_type
+
+
 class AssignableDevice:
 
     def __init__(self):
@@ -475,9 +523,13 @@ class Structure:
         self.collection = "structures"
         if obj:
             self.name = obj["name"]
-            self.inputs = obj["inputs"]
+            self.inputs = []
+            for o in obj["inputs"]:
+                self.inputs.append(Input(o))
             self.outputs = obj["outputs"]
-            self.devices = obj["devices"]
+            self.devices = []
+            for o in obj["devices"]:
+                self.devices.append(Device(o))
 
     @property
     def name(self):
@@ -577,7 +629,9 @@ class Part:
             self.type = obj["type"]
             self.dnasequence = obj["dnasequence"]
             if "parameters" in obj:
-                self.parameters = obj["parameters"]
+                self.parameters = []
+                for o in obj["parameters"]:
+                    self.parameters.append(Parameter(o))
 
     @property
     def name(self):
@@ -652,6 +706,45 @@ class UserConstraintsFile:
                 self.device_rules = coll
             elif coll['collection'] == 'genetic_locations_rules':
                 self.genetic_locations_rules = coll
+        for model in self.models:
+            for f in list(model.functions.keys()):
+                for g in self.functions:
+                    if model.functions[f] == g.name:
+                        model.functions[f] = g
+        for structure in self.structures:
+            outputs = []
+            for output in structure.outputs:
+                for part in self.parts:
+                    if output == part.name:
+                        outputs.append(part)
+            structure.outputs = outputs
+            names = []
+            for device in structure.devices:
+                names.append(device.name)
+            for device in structure.devices:
+                components = []
+                for component in device.components:
+                    if not component.startswith("#"):
+                        if component not in names:
+                            for part in self.parts:
+                                if component == part.name:
+                                    components.append(part)
+                        else:
+                            for d in structure.devices:
+                                if component == d.name:
+                                    components.append(d)
+                    else:
+                        for i in structure.inputs:
+                            if component.lstrip("#") == i.name:
+                                components.append(i)
+                device.components = components
+        for device in self.gates + self.input_sensors + self.output_devices:
+            for model in self.models:
+                if device.model == model.name:
+                    device.model = model
+            for structure in self.structures:
+                if device.structure == structure.name:
+                    device.structure = structure
 
     @property
     def header(self):
