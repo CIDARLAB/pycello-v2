@@ -3,7 +3,7 @@ import pycello.target_data as td
 
 sensors = [
     {"name": "Ara",   "promoter": "PBadmc", "ymin": 0.04, "ymax": 3.33, "dnasequence": "AACGATCGTTGGCTGTAGCATTTTTATCCATAAGATTAGCGGATCCTACCTGACGCTTTTTATCGCAACTCTCTATATTTTTCTCCATACCCG"},
-    {"name": "IPTG",  "promoter": "PTac",   "ymin": 0.02, "ymax": 4.20, "dnasequence": ""},
+    {"name": "IPTG",  "promoter": "PTac",   "ymin": 0.02, "ymax": 4.20, "dnasequence": "AACGATCGTTGGCTGTGTTGACAATTAATCATCGGCTCGTATAATGTGTGGAATTGTGAGCGCTCACAATT"},
     {"name": "aTc",   "promoter": "PTet",   "ymin": 0.02, "ymax": 5.41, "dnasequence": "AACGATCGTTGGCTGTCCCTATCAGTGATAGAGATTGACATCCCTATCAGTGATAGATATAATGAGCAC"},
     {"name": "Cuma",  "promoter": "PCymRC", "ymin": 0.19, "ymax": 2.39, "dnasequence": "TTCCGATGTAGGAGTAACAAACAGACAATCTGGTCTGTTTGTATTATGGAAAATTTTTCTGTATAATAGATTC"},
     {"name": "Van",   "promoter": "PVanCC", "ymin": 0.02, "ymax": 3.79, "dnasequence": ""},
