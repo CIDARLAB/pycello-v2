@@ -667,17 +667,9 @@ class Part:
         self.__parameters = parameters
 
 
-class UserConstraintsFile:
+class TargetDataFile:
 
     def __init__(self, ucf):
-        self.motif_library = []
-        self.gates = []
-        self.input_sensors = []
-        self.output_devices = []
-        self.models = []
-        self.structures = []
-        self.functions = []
-        self.parts = []
         for coll in ucf:
             if coll['collection'] == 'header':
                 self.header = Header(coll)
@@ -686,20 +678,36 @@ class UserConstraintsFile:
             elif coll['collection'] == 'logic_constraints':
                 self.logic_constraints = LogicConstraints(coll)
             elif coll['collection'] == 'motif_library':
+                if not hasattr(self, "motif_library"):
+                    self.motif_library = []
                 self.motif_library.append(LogicMotif(coll))
             elif coll['collection'] == 'gates':
+                if not hasattr(self, "gates"):
+                    self.gates = []
                 self.gates.append(Gate(coll))
             elif coll['collection'] == 'input_sensors':
+                if not hasattr(self, "input_sensors"):
+                    self.input_sensors = []
                 self.input_sensors.append(InputSensor(coll))
             elif coll['collection'] == 'output_devices':
+                if not hasattr(self, "output_devices"):
+                    self.output_devices = []
                 self.output_devices.append(OutputDevice(coll))
             elif coll['collection'] == 'models':
+                if not hasattr(self, "models"):
+                    self.models = []
                 self.models.append(Model(coll))
             elif coll['collection'] == 'structures':
+                if not hasattr(self, "structures"):
+                    self.structures = []
                 self.structures.append(Structure(coll))
             elif coll['collection'] == 'functions':
+                if not hasattr(self, "functions"):
+                    self.functions = []
                 self.functions.append(Function(coll))
             elif coll['collection'] == 'parts':
+                if not hasattr(self, "parts"):
+                    self.parts = []
                 self.parts.append(Part(coll))
             elif coll['collection'] == 'circuit_rules':
                 self.circuit_rules = coll
@@ -739,7 +747,14 @@ class UserConstraintsFile:
                             if component.lstrip("#") == i.name:
                                 components.append(i)
                 device.components = components
-        for device in self.gates + self.input_sensors + self.output_devices:
+        devices = []
+        if hasattr(self, "gates"):
+            devices += self.gates
+        if hasattr(self, "input_sensors"):
+            devices += self.input_sensors
+        if hasattr(self, "output_devices"):
+            devices += self.output_devices
+        for device in devices:
             for model in self.models:
                 if device.model == model.name:
                     device.model = model

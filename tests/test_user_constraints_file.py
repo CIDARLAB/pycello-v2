@@ -12,13 +12,14 @@ __license__ = 'GPL3'
 class TestUserConstraintsFile(unittest.TestCase, metaclass=TestFileMeta):
 
     def get_test_args():
-        files = glob("examples/Cello-UCF/files/v2/ucf/**/*.UCF.json", recursive=True)
+        pattern = "examples/Cello-UCF/files/v2/ucf/**/*.UCF.json"
+        files = glob(pattern, recursive=True)
         for f in files:
             yield (basename(f), f)
 
     def _test_user_constraints_file(self, f):
         ucf = get_json_file_contents(f)
-        pycello.target_data.UserConstraintsFile(ucf)
+        pycello.target_data.TargetDataFile(ucf)
 
 
 if __name__ == '__main__':
