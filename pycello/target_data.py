@@ -524,13 +524,16 @@ class Structure:
         self.collection = "structures"
         if obj:
             self.name = obj["name"]
-            self.inputs = []
-            for o in obj["inputs"]:
-                self.inputs.append(Input(o))
-            self.outputs = obj["outputs"]
-            self.devices = []
-            for o in obj["devices"]:
-                self.devices.append(Device(o))
+            if "inputs" in obj:
+                self.inputs = []
+                for o in obj["inputs"]:
+                    self.inputs.append(Input(o))
+            if "outputs" in obj:
+                self.outputs = obj["outputs"]
+            if "devices" in obj:
+                self.devices = []
+                for o in obj["devices"]:
+                    self.devices.append(Device(o))
 
     @property
     def name(self):
@@ -721,32 +724,34 @@ class TargetDataFile:
                     if model.functions[f] == g.name:
                         model.functions[f] = g
         for structure in self.structures:
-            outputs = []
-            for output in structure.outputs:
-                for part in self.parts:
-                    if output == part.name:
-                        outputs.append(part)
-            structure.outputs = outputs
-            names = []
-            for device in structure.devices:
-                names.append(device.name)
-            for device in structure.devices:
-                components = []
-                for component in device.components:
-                    if not component.startswith("#"):
-                        if component not in names:
-                            for part in self.parts:
-                                if component == part.name:
-                                    components.append(part)
+            if hasattr(structure, "outputs"):
+                outputs = []
+                for output in structure.outputs:
+                    for part in self.parts:
+                        if output == part.name:
+                            outputs.append(part)
+                structure.outputs = outputs
+            if hasattr(structure, "devices"):
+                names = []
+                for device in structure.devices:
+                    names.append(device.name)
+                for device in structure.devices:
+                    components = []
+                    for component in device.components:
+                        if not component.startswith("#"):
+                            if component not in names:
+                                for part in self.parts:
+                                    if component == part.name:
+                                        components.append(part)
+                            else:
+                                for d in structure.devices:
+                                    if component == d.name:
+                                        components.append(d)
                         else:
-                            for d in structure.devices:
-                                if component == d.name:
-                                    components.append(d)
-                    else:
-                        for i in structure.inputs:
-                            if component.lstrip("#") == i.name:
-                                components.append(i)
-                device.components = components
+                            for i in structure.inputs:
+                                if component.lstrip("#") == i.name:
+                                    components.append(i)
+                    device.components = components
         devices = []
         if hasattr(self, "gates"):
             devices += self.gates
