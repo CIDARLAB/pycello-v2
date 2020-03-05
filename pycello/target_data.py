@@ -121,7 +121,8 @@ class MeasurementStd:
             self.signal_carrier_units = obj["signal_carrier_units"]
             self.normalization_instructions = obj["normalization_instructions"]
             self.plasmid_description = obj["plasmid_description"]
-            self.plasmid_sequence = obj["plasmid_sequence"]
+            if "plasmid_sequence" in obj:
+                self.plasmid_sequence = obj["plasmid_sequence"]
 
     @property
     def signal_carrier_units(self):
