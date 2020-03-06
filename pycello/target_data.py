@@ -718,6 +718,8 @@ class TargetDataFile:
                 self.device_rules = coll
             elif coll['collection'] == 'genetic_locations_rules':
                 self.genetic_locations_rules = coll
+
+    def dereference(self):
         for model in self.models:
             for f in list(model.functions.keys()):
                 for g in self.functions:

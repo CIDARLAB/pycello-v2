@@ -1,4 +1,5 @@
 import unittest
+import json
 from glob import glob
 from os.path import basename
 from .context import pycello
@@ -9,17 +10,18 @@ __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
-class TestOutputDeviceFile(unittest.TestCase, metaclass=TestFileMeta):
+class TestTargetDataFile(unittest.TestCase, metaclass=TestFileMeta):
 
     def get_test_args():
-        pattern = "examples/Cello-UCF/files/v2/output/**/*.output.json"
+        pattern = "examples/Cello-UCF/files/v2/**/**/*.json"
         files = glob(pattern, recursive=True)
         for f in files:
             yield (basename(f), f)
 
-    def _test_output_device_file(self, f):
-        odf = get_json_file_contents(f)
-        pycello.target_data.TargetDataFile(odf)
+    def _test_user_constraints_file(self, f):
+        with open(f) as fp:
+            j = json.load(fp)
+            pycello.target_data.TargetDataFile(j)
 
 
 if __name__ == '__main__':
