@@ -1,5 +1,5 @@
-from pycello.netlist import Component, Node, Netlist, Placement
-from pycello.target_data import Gate, Part
+from .netlist import Component, Node, Netlist, Placement
+from .target_data import Gate, Part
 import sympy
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'

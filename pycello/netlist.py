@@ -1,6 +1,6 @@
 import json
 import re
-from pycello.utils import find_by_name
+from .utils import find_by_name
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
@@ -79,6 +79,9 @@ class Edge:
         self.src = edge["src"]
         self.dst = edge["dst"]
 
+    def __str__(self):
+        return "Edge(name={}, src={}, dst={})".format(self.name, self.src, self. dst)
+
     @property
     def name(self):
         return self.__name
@@ -106,8 +109,10 @@ class Edge:
 
 class Placement:
 
-    def __init__(self):
+    def __init__(self, obj):
         self.groups = []
+        for group in obj:
+            self.groups.append(PlacementGroup(group))
 
     @property
     def groups(self):
@@ -120,8 +125,19 @@ class Placement:
 
 class PlacementGroup:
 
-    def __init__(self):
+    def __init__(self, obj):
         self.components = []
+        self.name = obj["name"]
+        for component in obj["components"]:
+            self.components.append(Component(component))
+
+    @property
+    def name(self):
+        return self.__name
+
+    @name.setter
+    def name(self, name):
+        self.__name = name
 
     @property
     def components(self):
@@ -141,8 +157,21 @@ class PlacementGroup:
 
 class Component:
 
-    def __init__(self):
-        self.parts = []
+    def __init__(self, obj):
+        self.name = obj["name"]
+        self.node = obj["node"]
+        self.parts = obj["parts"]
+        # for obj in parts:
+        #     self.parts.append(obj
+        #     part = ucf.part(obj)
+        #     gate = ucf.gate(obj)
+        #     if (part):
+        #         instance = PartInstance(part)
+        #         c.parts.append(instance)
+        #     if (gate):
+        #         for part in gate.parts:
+        #             instance = PartInstance(part)
+        #             c.parts.append(instance)
 
     @property
     def name(self):
@@ -223,33 +252,13 @@ class Netlist:
             self.nodes.append(Node(node))
         for edge in netlist["edges"]:
             self.edges.append(Edge(edge))
+        for placement in netlist["placements"]:
+            self.placements.append(Placement(placement))
 
     def dereference(self):
         for edge in self.edges:
             edge.src = find_by_name(edge.src, self.nodes)
             edge.dst = find_by_name(edge.dst, self.nodes)
-        # for placement in netlist["placements"]:
-        #     p = Placement()
-        #     self.placements.append(p)
-        #     for group in placement:
-        #         g = PlacementGroup()
-        #         p.groups.append(g)
-        #         g.name = group['name']
-        #         for component in group['components']:
-        #             c = Component()
-        #             g.components.append(c)
-        #             c.name = component['name']
-        #             c.node = self.node(component['node'])
-        #             for obj in component['parts']:
-        #                 part = ucf.part(obj)
-        #                 gate = ucf.gate(obj)
-        #                 if (part):
-        #                     instance = PartInstance(part)
-        #                     c.parts.append(instance)
-        #                 if (gate):
-        #                     for part in gate.parts:
-        #                         instance = PartInstance(part)
-        #                         c.parts.append(instance)
 
     @classmethod
     def fromLogicCircuit(self, lc):
@@ -276,14 +285,6 @@ class Netlist:
                 elif (m.group(1) == "INPUT"):
                     node["nodeType"] = "PRIMARY_INPUT"
                     node["deviceName"] = re.sub("^input_", "", m.group(2))
-                    # if (node["deviceName"] == "pBAD"):
-                    #     node["deviceName"] = "AraC_sensor"
-                    # if (node["deviceName"] == "pTet"):
-                    #     node["deviceName"] = "TetR_sensor"
-                    # if (node["deviceName"] == "pLuxStar"):
-                    #     node["deviceName"] = "LuxR_sensor"
-                    # if (node["deviceName"] == "pTac"):
-                    #     node["deviceName"] = "LacI_sensor"
                 else:
                     node["nodeType"] = m.group(1)
                     node["deviceName"] = m.group(2)

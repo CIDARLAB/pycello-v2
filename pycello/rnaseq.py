@@ -4,10 +4,10 @@ import json
 import csv
 import logging
 
-import pycello.netlist
-import pycello.dnaplotlib
-import pycello.ucf
-import pycello.utils
+from . import netlist
+from . import dnaplotlib
+from . import target_data
+from . import utils
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
@@ -46,18 +46,18 @@ def placement_rnaseq(netlist, placement, activity):
                         offset = 0.0
 
                     if part_instance.part.type == 'promoter':
-                        upstream_node = pycello.utils.get_upstream_node(part_instance.part, component.node, netlist)
+                        upstream_node = netlist_utils.get_upstream_node(part_instance.part, component.node, netlist)
                         if upstream_node.type == 'PRIMARY_INPUT':
                             delta_flux = activity[upstream_node.name][0]
                         else:
-                            upstream_components = pycello.utils.get_components(upstream_node, placement)
+                            upstream_components = netlist_utils.get_components(upstream_node, placement)
                             input_flux = 0.0
                             for upstream_component in upstream_components:
-                                input_flux += profile[pycello.utils.get_cds(upstream_component)]
-                            delta_flux = pycello.utils.evaluate_equation(upstream_node.gate, {'x': input_flux})
-                        profile[part_instance] = pycello.utils.get_ribozyme(component).efficiency * delta_flux + offset
+                                input_flux += profile[netlist_utils.get_cds(upstream_component)]
+                            delta_flux = netlist_utils.evaluate_equation(upstream_node.gate, {'x': input_flux})
+                        profile[part_instance] = netlist_utils.get_ribozyme(component).efficiency * delta_flux + offset
                     if part_instance.part.type == 'ribozyme':
-                        profile[part_instance] = offset / pycello.utils.get_ribozyme(component).efficiency
+                        profile[part_instance] = offset / netlist_utils.get_ribozyme(component).efficiency
                     if part_instance.part.type in ('cds', 'rbs'):
                         profile[part_instance] = offset
                     if part_instance.part.type == 'terminator':
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     activity = []
     logic = []
     with open(args.ucf, 'r') as ucf_fp:
-        ucf = pycello.ucf.UCF(json.load(ucf_fp))
+        ucf = target_data.UCF(json.load(ucf_fp))
     with open(args.activity, 'r') as activity_fp:
         activity_reader = csv.reader(activity_fp)
         for row in activity_reader:

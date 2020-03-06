@@ -1,4 +1,4 @@
-from . import utils as pycello_utils
+from . import netlist_utils
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
@@ -43,12 +43,12 @@ def get_designs(netlist):
                 for j, part_instance in enumerate(component.parts):
                     extent = len(part_instance.part.sequence)
                     if part_instance.part.type == 'promoter':
-                        upstream = pycello_utils.get_upstream_node(part_instance.part, component.node, netlist)
+                        upstream = netlist_utils.get_upstream_node(part_instance.part, component.node, netlist)
                         color = 'black'
                         if (upstream):
-                            upstream_components = pycello_utils.get_components(upstream, placement)
+                            upstream_components = netlist_utils.get_components(upstream, placement)
                             if (len(upstream_components)):
-                                cds = pycello_utils.get_cds(upstream_components[0])
+                                cds = netlist_utils.get_cds(upstream_components[0])
                                 color = cds.color
                         part = {'type': 'Promoter',
                                 'fwd': True,
