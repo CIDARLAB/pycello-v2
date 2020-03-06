@@ -1,16 +1,29 @@
+import json
 import re
 
 __author__ = 'Timothy S. Jones <jonests@bu.edu>, Densmore Lab, BU'
 __license__ = 'GPL3'
 
 
+class NodeEncoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, Node):
+            return {
+                "name": obj.name,
+                "nodeType": obj.node_type,
+                "partitionID": obj.partition_id,
+                "deviceName": obj.device_name
+            }
+
+
 class Node:
 
-    def __init__(self, node, ucf):
+    def __init__(self, node):
         self.name = node['name']
-        self.type = node['nodeType']
+        self.node_type = node['nodeType']
         self.partition_id = node['partitionID']
-        self.gate = ucf.gate(node['gateType'])
+        self.device_name = node['deviceName']
 
     @property
     def name(self):
@@ -21,12 +34,12 @@ class Node:
         self.__name = name
 
     @property
-    def type(self):
-        return self.__type
+    def node_type(self):
+        return self.__node_type
 
-    @type.setter
-    def type(self, type):
-        self.__type = type
+    @node_type.setter
+    def node_type(self, node_type):
+        self.__node_type = node_type
 
     @property
     def partition_id(self):
@@ -37,23 +50,12 @@ class Node:
         self.__partition_id = partition_id
 
     @property
-    def gate(self):
-        return self.__gate
+    def device_name(self):
+        return self.__device_name
 
-    @gate.setter
-    def gate(self, gate):
-        self.__gate = gate
-
-    @property
-    def json(self):
-        rtn = {
-            "name": self.name,
-            "nodeType": self.type,
-            "partitionID": self.partition_id,
-            "gateType": self.gate.name
-        }
-
-        return rtn
+    @device_name.setter
+    def device_name(self, device_name):
+        self.__device_name = device_name
 
 
 class Edge:
@@ -84,16 +86,6 @@ class Edge:
     @dst.setter
     def dst(self, dst):
         self.__dst = dst
-
-    @property
-    def json(self):
-        rtn = {
-            "name": self.name,
-            "src": self.src.name,
-            "dst": self.dst.name
-        }
-
-        return rtn
 
 
 class Placement:
@@ -202,42 +194,44 @@ class PartInstance:
 
 class Netlist:
 
-    def __init__(self, netlist, ucf):
-        self.name = netlist['name'] if 'name' in netlist else ""
-        self.input_filename = netlist['inputFilename'] if 'inputFilename' in netlist else ""
+    def __init__(self, netlist):
+        if "name" in netlist:
+            self.name = netlist["name"]
+        if "inputFilename" in netlist:
+            self.input_filename = netlist["inputFilename"]
         self.nodes = []
         self.edges = []
         self.placements = []
 
-        for node in netlist['nodes']:
-            self.nodes.append(Node(node, ucf))
-        for edge in netlist['edges']:
+        for node in netlist["nodes"]:
+            self.nodes.append(Node(node))
+        for edge in netlist["edges"]:
             e = Edge(edge)
-            e.src = self.node(edge['src'])
-            e.dst = self.node(edge['dst'])
+            e.src = self.node(edge["src"])
+            e.dst = self.node(edge["dst"])
             self.edges.append(e)
-        for placement in netlist['placements']:
-            p = Placement()
-            self.placements.append(p)
-            for group in placement:
-                g = PlacementGroup()
-                p.groups.append(g)
-                g.name = group['name']
-                for component in group['components']:
-                    c = Component()
-                    g.components.append(c)
-                    c.name = component['name']
-                    c.node = self.node(component['node'])
-                    for obj in component['parts']:
-                        part = ucf.part(obj)
-                        gate = ucf.gate(obj)
-                        if (part):
-                            instance = PartInstance(part)
-                            c.parts.append(instance)
-                        if (gate):
-                            for part in gate.parts:
-                                instance = PartInstance(part)
-                                c.parts.append(instance)
+        # for placement in netlist["placements"]:
+        #     p = Placement()
+        #     self.placements.append(p)
+        #     for group in placement:
+        #         g = PlacementGroup()
+        #         p.groups.append(g)
+        #         g.name = group['name']
+        #         for component in group['components']:
+        #             c = Component()
+        #             g.components.append(c)
+        #             c.name = component['name']
+        #             c.node = self.node(component['node'])
+        #             for obj in component['parts']:
+        #                 part = ucf.part(obj)
+        #                 gate = ucf.gate(obj)
+        #                 if (part):
+        #                     instance = PartInstance(part)
+        #                     c.parts.append(instance)
+        #                 if (gate):
+        #                     for part in gate.parts:
+        #                         instance = PartInstance(part)
+        #                         c.parts.append(instance)
 
     @classmethod
     def fromLogicCircuit(self, lc, ucf):
